@@ -16,7 +16,7 @@ public class ServerLauncher {
     public static void main(String[] args) {
         if (args.length != 1) {
             log.error("Invalid parameters. To start server run: " +
-                    "\n\tjava -jar app-server-<version>.jar <port>");
+                    "\n\tjava -jar merchandiser-server-<version>.jar <port>");
             return;
         }
         int port;

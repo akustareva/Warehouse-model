@@ -15,7 +15,7 @@ public class WelcomeProvider extends DefaultBannerProvider {
         StringBuilder buf = new StringBuilder();
         buf.append("===================================").append(OsUtils.LINE_SEPARATOR);
         buf.append("*                                 *").append(OsUtils.LINE_SEPARATOR);
-        buf.append("*  Welcome to application server  *").append(OsUtils.LINE_SEPARATOR);
+        buf.append("*      Welcome to merchandiser    *").append(OsUtils.LINE_SEPARATOR);
         buf.append("*                                 *").append(OsUtils.LINE_SEPARATOR);
         buf.append("===================================").append(OsUtils.LINE_SEPARATOR);
         buf.append("Version:").append(this.getVersion());
@@ -28,7 +28,7 @@ public class WelcomeProvider extends DefaultBannerProvider {
     }
 
     public String getWelcomeMessage() {
-        return "Welcome to Application Service. Press TUB to see available commands or " +
+        return "Welcome to Merchandiser Service. Press TUB to see available commands or " +
                 "use command \"help\" to see more information about them. " +
                 "Please use command \"stop\" to safely shut down the server.";
     }
