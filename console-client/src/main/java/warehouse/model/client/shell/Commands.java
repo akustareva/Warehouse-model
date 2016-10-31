@@ -5,6 +5,7 @@ import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import warehouse.model.entities.User;
 
 @Component
 public class Commands implements CommandMarker {
@@ -23,6 +24,14 @@ public class Commands implements CommandMarker {
         }
         address += "warehouse/";
         this.serverAddress = address;
+    }
+
+    @CliCommand(value = "sign up", help = "Sign up new user")
+    public void signUp(
+            @CliOption(key = {"login", ""}, mandatory = true, help = "User login") String login,
+            @CliOption(key = {"password", ""}, mandatory = true, help = "User password") String password)
+    {
+        restTemplate.put(serverAddress + "sign_up", new User(login, password));
     }
 
     @CliCommand(value = "get", help = "Checking the number of available product with specified code")
