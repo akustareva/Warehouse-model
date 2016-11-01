@@ -4,27 +4,30 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import warehouse.model.entities.GetRequest;
+import warehouse.model.entities.OrderRequest;
 import warehouse.model.entities.User;
 import warehouse.model.webserver.db.SQLExecutor;
 
 @RestController
 public class Queries {
 
-    // TODO: These are examples of operations. They will be changed.
-
     @RequestMapping(value = "/warehouse/sign_up", method = RequestMethod.PUT)
     public void userSignUp(@RequestBody User user) {
-        SQLExecutor.insert(user.getLogin(), user.getPassword());
+        SQLExecutor.insert(user);
+        // TODO: return unique id?
     }
 
     @RequestMapping(value = "/warehouse/get", method = RequestMethod.POST)
-    public String CheckRequest(Integer uniqueCode) {
-        return "You sent request for check the number of available product with code " + uniqueCode;
+    public int CheckRequest(@RequestBody GetRequest request) {
+        SQLExecutor.addNewRequest(request);
+        // TODO: send request in warehouse server
+        return 0;
     }
 
-    @RequestMapping("/warehouse/buy")
-    public String PurchaseRequest(int uniqueCode, int count) {
-        return "You sent request for buy product with code " + uniqueCode
-                + " in an amount of " + count + " items";
+    @RequestMapping(value = "/warehouse/order", method = RequestMethod.POST)
+    public void Request(@RequestBody OrderRequest request) {
+        SQLExecutor.addNewRequest(request);
+        // TODO: send request in warehouse server
     }
 }

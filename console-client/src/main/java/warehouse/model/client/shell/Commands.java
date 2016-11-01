@@ -5,6 +5,7 @@ import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import warehouse.model.entities.GetRequest;
 import warehouse.model.entities.User;
 
 @Component
@@ -35,9 +36,10 @@ public class Commands implements CommandMarker {
     }
 
     @CliCommand(value = "get", help = "Checking the number of available product with specified code")
-    public String get(
-            @CliOption(key = {"code", ""}, mandatory = true, help = "Unique product code") int uniqueCode)
+    public int get(
+            @CliOption(key = {"code", ""}, mandatory = true, help = "Unique product code") int uniqueCode,
+            @CliOption(key = {"user", ""}, specifiedDefaultValue = "1", help = "User id") int userId)
     {
-        return restTemplate.postForObject(serverAddress + "get", uniqueCode, String.class);
+        return restTemplate.postForObject(serverAddress + "get", new GetRequest(userId, uniqueCode), Integer.class);
     }
 }

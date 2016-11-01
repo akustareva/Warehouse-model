@@ -8,14 +8,14 @@ CREATE TABLE IF NOT EXISTS Request (
   id Int NOT NULL AUTO_INCREMENT PRIMARY KEY,
   user_id Int NOT NULL,
   unique_code Int NOT NULL UNIQUE,
-  amount Int NOT NULL,
-  status VARCHAR(30) NOT NULL,                -- buy / book
+  amount Int,
+  type VARCHAR(10) NOT NULL,                -- buy / book / get
 
   FOREIGN KEY (user_id) REFERENCES User(id)
 );
 
 
-CREATE TABLE IF NOT EXISTS RequestINFO (
+CREATE TABLE IF NOT EXISTS RequestInfo (
   request_id Int NOT NULL,
   amount Int NOT NULL,                        -- number of submissions
   status VARCHAR(30) NOT NULL,

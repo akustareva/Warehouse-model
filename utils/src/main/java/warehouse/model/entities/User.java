@@ -10,8 +10,7 @@ public class User {
     private String password;
 
     @JsonCreator
-    public User(@JsonProperty("login") String login,
-                @JsonProperty("password") String password) {
+    public User(@JsonProperty("login") String login, @JsonProperty("password") String password) {
         this.login = login;
         this.password = password;
     }
