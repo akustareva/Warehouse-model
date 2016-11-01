@@ -29,16 +29,16 @@ public class Commands implements CommandMarker {
 
     @CliCommand(value = "sign up", help = "Sign up new user")
     public void signUp(
-            @CliOption(key = {"login", ""}, mandatory = true, help = "User login") String login,
-            @CliOption(key = {"password", ""}, mandatory = true, help = "User password") String password)
+            @CliOption(key = {"login"}, mandatory = true, help = "User login") String login,
+            @CliOption(key = {"password"}, mandatory = true, help = "User password") String password)
     {
         restTemplate.put(serverAddress + "sign_up", new User(login, password));
     }
 
     @CliCommand(value = "get", help = "Checking the number of available product with specified code")
     public int get(
-            @CliOption(key = {"code", ""}, mandatory = true, help = "Unique product code") int uniqueCode,
-            @CliOption(key = {"user", ""}, specifiedDefaultValue = "1", help = "User id") int userId)
+            @CliOption(key = {"code"}, mandatory = true, help = "Unique product code") int uniqueCode,
+            @CliOption(key = {"user"}, specifiedDefaultValue = "1", help = "User id") int userId)
     {
         return restTemplate.postForObject(serverAddress + "get", new GetRequest(userId, uniqueCode), Integer.class);
     }

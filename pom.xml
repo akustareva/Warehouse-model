@@ -28,6 +28,7 @@
 
     <modules>
         <module>merchandiser-server</module>
+        <module>warehouse-server</module>
         <module>console-client</module>
         <module>utils</module>
     </modules>
