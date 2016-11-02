@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/console-client/console-client.iml" filepath="$PROJECT_DIR$/console-client/console-client.iml" />
+      <module fileurl="file://$PROJECT_DIR$/merchandiser-server/merchandiser-server.iml" filepath="$PROJECT_DIR$/merchandiser-server/merchandiser-server.iml" />
+      <module fileurl="file://$PROJECT_DIR$/utils/utils.iml" filepath="$PROJECT_DIR$/utils/utils.iml" />
+      <module fileurl="file://$PROJECT_DIR$/warehouse.iml" filepath="$PROJECT_DIR$/warehouse.iml" />
+      <module fileurl="file://$PROJECT_DIR$/warehouse-server/warehouse-server.iml" filepath="$PROJECT_DIR$/warehouse-server/warehouse-server.iml" />
+    </modules>
+  </component>
+</project>
