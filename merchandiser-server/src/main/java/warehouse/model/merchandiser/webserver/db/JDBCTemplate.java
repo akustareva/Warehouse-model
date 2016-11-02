@@ -1,4 +1,4 @@
-package warehouse.model.webserver.db;
+package warehouse.model.merchandiser.webserver.db;
 
 import org.h2.jdbcx.JdbcDataSource;
 import org.slf4j.Logger;

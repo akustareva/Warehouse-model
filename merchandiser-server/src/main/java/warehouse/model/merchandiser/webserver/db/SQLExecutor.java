@@ -1,4 +1,4 @@
-package warehouse.model.webserver.db;
+package warehouse.model.merchandiser.webserver.db;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import warehouse.model.entities.GetRequest;

@@ -13,7 +13,7 @@
     <artifactId>merchandiser-server</artifactId>
 
     <properties>
-        <start-class>warehouse.model.webserver.ServerLauncher</start-class>
+        <start-class>warehouse.model.merchandiser.webserver.ServerLauncher</start-class>
     </properties>
 
     <dependencies>

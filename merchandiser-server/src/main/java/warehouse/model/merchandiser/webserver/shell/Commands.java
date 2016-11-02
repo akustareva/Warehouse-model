@@ -1,4 +1,4 @@
-package warehouse.model.webserver.shell;
+package warehouse.model.merchandiser.webserver.shell;
 
 import org.springframework.boot.ExitCodeGenerator;
 import org.springframework.boot.SpringApplication;
@@ -7,7 +7,7 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.stereotype.Component;
-import warehouse.model.webserver.db.JDBCTemplate;
+import warehouse.model.merchandiser.webserver.db.JDBCTemplate;
 
 @Component
 public class Commands implements CommandMarker {
@@ -22,6 +22,6 @@ public class Commands implements CommandMarker {
     @CliCommand(value = "stop", help = "Close shell and shutdown the server")
     public void stop() {
         System.exit(SpringApplication.exit(context, (ExitCodeGenerator) () -> 0));
-        ((EmbeddedDatabase)JDBCTemplate.getInstance().getDataSource()).shutdown();
+        ((EmbeddedDatabase) JDBCTemplate.getInstance().getDataSource()).shutdown();
     }
 }

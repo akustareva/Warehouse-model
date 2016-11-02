@@ -1,4 +1,4 @@
-package objects;
+package warehouse.model.webserver.entities;
 
 public class GoodsDisplay {
     private long articul_id, warehouse_id, status_id, quantity;

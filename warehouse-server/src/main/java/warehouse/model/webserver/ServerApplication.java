@@ -1,9 +1,9 @@
-package server;
+package warehouse.model.webserver;
 
-import objects.Goods;
-import objects.GoodsDisplay;
-import objects.StatusList;
-import objects.Warehouse;
+import warehouse.model.webserver.entities.Goods;
+import warehouse.model.webserver.entities.GoodsDisplay;
+import warehouse.model.webserver.entities.StatusList;
+import warehouse.model.webserver.entities.Warehouse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;

@@ -1,4 +1,4 @@
-package warehouse.model.webserver.shell;
+package warehouse.model.merchandiser.webserver.shell;
 
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;

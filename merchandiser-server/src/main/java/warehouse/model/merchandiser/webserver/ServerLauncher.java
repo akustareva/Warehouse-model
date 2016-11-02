@@ -1,4 +1,4 @@
-package warehouse.model.webserver;
+package warehouse.model.merchandiser.webserver;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,7 +7,7 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.JLineShellComponent;
-import warehouse.model.webserver.shell.Commands;
+import warehouse.model.merchandiser.webserver.shell.Commands;
 
 @SpringBootApplication
 public class ServerLauncher {

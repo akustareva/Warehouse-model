@@ -1,4 +1,4 @@
-package warehouse.model.webserver;
+package warehouse.model.merchandiser.webserver;
 
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 import warehouse.model.entities.GetRequest;
 import warehouse.model.entities.OrderRequest;
 import warehouse.model.entities.User;
-import warehouse.model.webserver.db.SQLExecutor;
+import warehouse.model.merchandiser.webserver.db.SQLExecutor;
 
 @RestController
 public class Queries {

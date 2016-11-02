@@ -1,4 +1,4 @@
-package objects;
+package warehouse.model.webserver.entities;
 
 public class StatusList {
     private long articul_id;
