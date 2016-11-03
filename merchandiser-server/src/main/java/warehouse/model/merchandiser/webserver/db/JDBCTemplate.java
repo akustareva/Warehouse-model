@@ -8,6 +8,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
 
 import javax.sql.DataSource;
+import java.sql.Connection;
 import java.sql.SQLException;
 
 public class JDBCTemplate {
@@ -30,11 +31,19 @@ public class JDBCTemplate {
     public static JdbcTemplate getInstance() {
         if (jdbcTemplate == null) {
             DataSource dataSource = DataSource();
+            Connection dbConnection = null;
             jdbcTemplate = new JdbcTemplate(dataSource);
             try {
-                ScriptUtils.executeSqlScript(dataSource.getConnection(), new ClassPathResource("db/create-db.sql"));
+                dbConnection = dataSource.getConnection();
+                ScriptUtils.executeSqlScript(dbConnection, new ClassPathResource("db/create-db.sql"));
             } catch (SQLException e) {
                 log.error("Error during loading db: ", e);
+            } finally {
+                try {
+                    if (dbConnection != null) {
+                        dbConnection.close();
+                    }
+                } catch (SQLException ignored) {}
             }
         }
         return jdbcTemplate;

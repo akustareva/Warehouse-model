@@ -10,22 +10,22 @@ import warehouse.model.entities.User;
 import warehouse.model.merchandiser.webserver.db.SQLExecutor;
 
 @RestController
+@RequestMapping("/mh")
 public class Queries {
 
-    @RequestMapping(value = "/warehouse/sign_up", method = RequestMethod.PUT)
-    public void userSignUp(@RequestBody User user) {
-        SQLExecutor.insert(user);
-        // TODO: return unique id?
+    @RequestMapping(value = "/user", method = RequestMethod.POST)
+    public Integer userSignUp(@RequestBody User user) {
+        return SQLExecutor.insert(user);
     }
 
-    @RequestMapping(value = "/warehouse/get", method = RequestMethod.POST)
-    public int CheckRequest(@RequestBody GetRequest request) {
+    @RequestMapping(value = "/goods", method = RequestMethod.POST)
+    public Integer CheckRequest(@RequestBody GetRequest request) {
         SQLExecutor.addNewRequest(request);
         // TODO: send request in warehouse server
         return 0;
     }
 
-    @RequestMapping(value = "/warehouse/order", method = RequestMethod.POST)
+    @RequestMapping(value = "/order", method = RequestMethod.POST)
     public void Request(@RequestBody OrderRequest request) {
         SQLExecutor.addNewRequest(request);
         // TODO: send request in warehouse server

@@ -23,16 +23,20 @@ public class Commands implements CommandMarker {
         if (!address.endsWith("/")) {
             address += "/";
         }
-        address += "warehouse/";
+        address += "mh";
         this.serverAddress = address;
     }
 
     @CliCommand(value = "sign up", help = "Sign up new user")
-    public void signUp(
+    public String signUp(
             @CliOption(key = {"login"}, mandatory = true, help = "User login") String login,
             @CliOption(key = {"password"}, mandatory = true, help = "User password") String password)
     {
-        restTemplate.put(serverAddress + "sign_up", new User(login, password));
+        int userId = restTemplate.postForObject(serverAddress + "/user", new User(login, password), Integer.class);
+        if (userId == -1) {
+            return "Fail";
+        }
+        return "New user id is " + userId;
     }
 
     @CliCommand(value = "get", help = "Checking the number of available product with specified code")
@@ -40,6 +44,6 @@ public class Commands implements CommandMarker {
             @CliOption(key = {"code"}, mandatory = true, help = "Unique product code") int uniqueCode,
             @CliOption(key = {"user"}, specifiedDefaultValue = "1", help = "User id") int userId)
     {
-        return restTemplate.postForObject(serverAddress + "get", new GetRequest(userId, uniqueCode), Integer.class);
+        return restTemplate.postForObject(serverAddress + "/goods", new GetRequest(userId, uniqueCode), Integer.class);
     }
 }

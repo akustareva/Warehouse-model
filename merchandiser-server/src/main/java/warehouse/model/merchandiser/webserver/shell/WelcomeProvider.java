@@ -15,7 +15,7 @@ public class WelcomeProvider extends DefaultBannerProvider {
         StringBuilder buf = new StringBuilder();
         buf.append("===================================").append(OsUtils.LINE_SEPARATOR);
         buf.append("*                                 *").append(OsUtils.LINE_SEPARATOR);
-        buf.append("*      Welcome to merchandiser    *").append(OsUtils.LINE_SEPARATOR);
+        buf.append("*             Welcome             *").append(OsUtils.LINE_SEPARATOR);
         buf.append("*                                 *").append(OsUtils.LINE_SEPARATOR);
         buf.append("===================================").append(OsUtils.LINE_SEPARATOR);
         buf.append("Version:").append(this.getVersion());
