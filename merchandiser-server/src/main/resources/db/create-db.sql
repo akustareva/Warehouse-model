@@ -5,11 +5,11 @@ CREATE TABLE IF NOT EXISTS USER (
 );
 
 CREATE TABLE IF NOT EXISTS Request (
-  id Int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  id BIGINT NOT NULL PRIMARY KEY,
   user_id Int NOT NULL,
   unique_code Int NOT NULL UNIQUE,
   amount Int,
-  type VARCHAR(10) NOT NULL,                -- buy / book / get
+  type VARCHAR(10) NOT NULL,                -- buy / book / cancel
 
   FOREIGN KEY (user_id) REFERENCES User(id)
 );

@@ -1,11 +1,14 @@
 package warehouse.model.merchandiser.webserver.db;
 
 import org.springframework.jdbc.core.JdbcTemplate;
-import warehouse.model.entities.GetRequest;
 import warehouse.model.entities.OrderRequest;
 import warehouse.model.entities.User;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 public class SQLExecutor {
     private static JdbcTemplate jdbcTemplate = JDBCTemplate.getInstance();
@@ -41,15 +44,9 @@ public class SQLExecutor {
         return -1;
     }
 
-    public static void addNewRequest(OrderRequest request) {
+    public static void addNewRequest(OrderRequest request, Long id) {
         jdbcTemplate.update(
-                "INSERT INTO Request (user_id, unique_code, amount, type) VALUES (?,?,?,?)", request.getUserId(),
+                "INSERT INTO Request (id, user_id, unique_code, amount, type) VALUES (?, ?,?,?,?)", id, request.getUserId(),
                  request.getUniqueCode(), request.getAmount(), request.getType());
-    }
-
-    public static void addNewRequest(GetRequest request) {
-        jdbcTemplate.update(
-                "INSERT INTO Request (user_id, unique_code, type) VALUES (?,?,?)", request.getUserId(),
-                request.getUniqueCode(), "get");
     }
 }
