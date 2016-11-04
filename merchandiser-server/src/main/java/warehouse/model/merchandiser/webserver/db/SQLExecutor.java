@@ -1,6 +1,7 @@
 package warehouse.model.merchandiser.webserver.db;
 
 import org.springframework.jdbc.core.JdbcTemplate;
+import warehouse.model.db.JDBCTemplate;
 import warehouse.model.entities.OrderRequest;
 import warehouse.model.entities.User;
 
@@ -11,7 +12,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class SQLExecutor {
-    private static JdbcTemplate jdbcTemplate = JDBCTemplate.getInstance();
+    private static JdbcTemplate jdbcTemplate = JDBCTemplate.getInstance("jdbc:h2:./database/mh", "mh", "",
+            new String[]{"db/create-db.sql"});
 
     public static Integer insert(User user) {
         String sql = "INSERT INTO User (login, password) VALUES (?,?)";
@@ -45,8 +47,10 @@ public class SQLExecutor {
     }
 
     public static void addNewRequest(OrderRequest request, Long id) {
+        int type_id = jdbcTemplate.queryForObject("SELECT id FROM OrderTypeList WHERE status = ?",
+                Integer.class, request.getType());
         jdbcTemplate.update(
-                "INSERT INTO Request (id, user_id, unique_code, amount, type) VALUES (?, ?,?,?,?)", id, request.getUserId(),
-                 request.getUniqueCode(), request.getAmount(), request.getType());
+                "INSERT INTO Request (id, user_id, goods_id, quantity, type) VALUES (?, ?, ?, ?, ?)", id,
+                    request.getUserId(), request.getUniqueCode(), request.getAmount(), type_id);
     }
 }

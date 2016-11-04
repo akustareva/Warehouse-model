@@ -1,4 +1,4 @@
-package warehouse.model.merchandiser.webserver.shell;
+package warehouse.model.webserver.shell;
 
 import org.springframework.boot.ExitCodeGenerator;
 import org.springframework.boot.SpringApplication;
