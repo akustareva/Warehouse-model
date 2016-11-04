@@ -1,11 +1,11 @@
 CREATE TABLE IF NOT EXISTS Goods (
-  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  id INT NOT NULL PRIMARY KEY,
   quantity INT
 );
 
 CREATE TABLE IF NOT EXISTS OrderTypeList (
   id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  type VARCHAR(10) NOT NULL                 -- buy / book / cancel
+  type VARCHAR(10) NOT NULL                 -- booked / paid / cancel
 );
 
 CREATE TABLE IF NOT EXISTS StatusList (

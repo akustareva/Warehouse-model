@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS USER (
 
 CREATE TABLE IF NOT EXISTS OrderTypeList (
   id INT NOT NULL UNIQUE AUTO_INCREMENT PRIMARY KEY,
-  type VARCHAR(10) NOT NULL                 -- buy / book / cancel
+  type VARCHAR(10) NOT NULL                 -- booked / paid / cancel
 );
 
 CREATE TABLE IF NOT EXISTS Request (

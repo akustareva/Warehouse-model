@@ -2,7 +2,7 @@ package warehouse.model.merchandiser.webserver.db;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import warehouse.model.db.JDBCTemplate;
-import warehouse.model.entities.OrderRequest;
+import warehouse.model.entities.Request;
 import warehouse.model.entities.User;
 
 import java.sql.Connection;
@@ -46,7 +46,7 @@ public class SQLExecutor {
         return -1;
     }
 
-    public static void addNewRequest(OrderRequest request, Long id) {
+    public static void addNewRequest(Request request, Long id) {
         int type_id = jdbcTemplate.queryForObject("SELECT id FROM OrderTypeList WHERE status = ?",
                 Integer.class, request.getType());
         jdbcTemplate.update(
