@@ -23,7 +23,7 @@ public class Commands implements CommandMarker {
     @CliCommand(value = "stop", help = "Close shell and shutdown the server")
     public void stop() {
         System.exit(SpringApplication.exit(context, (ExitCodeGenerator) () -> 0));
-        JdbcTemplate template = JDBCTemplate.getJdbcTemplate();
+        JdbcTemplate template = JDBCTemplate.getJdbcTemplate(JDBCTemplate.Type.WH);
         if (template != null) {
             ((EmbeddedDatabase) template.getDataSource()).shutdown();
         }

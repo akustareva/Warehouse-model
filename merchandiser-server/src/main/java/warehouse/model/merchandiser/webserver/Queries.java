@@ -13,14 +13,17 @@ import warehouse.model.merchandiser.webserver.db.SQLExecutor;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 @RestController
 @RequestMapping("/mh")
 public class Queries {
+    private static ResourceBundle bundle = ResourceBundle.getBundle("mh", Locale.US);
     private static final int MOD = 106033;
     private static int number = 0;
     private RestTemplate restTemplate = new RestTemplate();
-    private String whServerAddress;
+    private String whServerAddress = bundle.getString("wh.server.default.address");
 
     @RequestMapping(value = "/goods/{good_id}", method = RequestMethod.GET)
     public Integer checkRequest(@PathVariable int good_id) {

@@ -26,6 +26,6 @@ public class Queries {
 
     @RequestMapping(value = "/all_goods", method = RequestMethod.GET)
     public List<Goods> showRequest() {
-        return SQLExecutor.shawAllGoods();
+        return SQLExecutor.showAllGoods();
     }
 }

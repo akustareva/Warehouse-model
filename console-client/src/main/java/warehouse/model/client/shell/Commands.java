@@ -64,7 +64,7 @@ public class Commands implements CommandMarker {
         return "Now available " + count + " items.";
     }
 
-    @CliCommand(value = "shaw all", help = "Shaw all available goods")
+    @CliCommand(value = "show all", help = "Show all available goods")
     public String showAll()
     {
         ObjectMapper mapper = new ObjectMapper();

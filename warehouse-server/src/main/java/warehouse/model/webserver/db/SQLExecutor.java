@@ -6,10 +6,13 @@ import warehouse.model.db.JDBCTemplate;
 import warehouse.model.entities.Goods;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 public class SQLExecutor {
-    private static JdbcTemplate jdbcTemplate = JDBCTemplate.getInstance("jdbc:h2:./database/wh", "wh", "",
-            new String[]{"db/create-db.sql"});
+    private static ResourceBundle bundle = ResourceBundle.getBundle("wh", Locale.US);
+    private static JdbcTemplate jdbcTemplate = JDBCTemplate.getInstance(JDBCTemplate.Type.WH, bundle.getString("db.location"),
+            bundle.getString("db.login"), bundle.getString("db.password"), new String[]{"db/create-db.sql"});
 
     public static void insert(Goods goods) {
         jdbcTemplate.update("INSERT INTO Goods VALUES (?, ?)", goods.getCode(), goods.getQuantity());
@@ -23,7 +26,7 @@ public class SQLExecutor {
         return quantity;
     }
 
-    public static List<Goods> shawAllGoods() {
+    public static List<Goods> showAllGoods() {
         List<Goods> goods = null;
         try {
             goods = jdbcTemplate.query("SELECT * FROM Goods",

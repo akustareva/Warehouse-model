@@ -10,10 +10,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 public class SQLExecutor {
-    private static JdbcTemplate jdbcTemplate = JDBCTemplate.getInstance("jdbc:h2:./database/mh", "mh", "",
-            new String[]{"db/create-db.sql"});
+    private static ResourceBundle bundle = ResourceBundle.getBundle("mh", Locale.US);
+    private static JdbcTemplate jdbcTemplate = JDBCTemplate.getInstance(JDBCTemplate.Type.MH, bundle.getString("db.location"),
+            bundle.getString("db.login"), bundle.getString("db.password"), new String[]{"db/create-db.sql"});
 
     public static Integer insert(User user) {
         String sql = "INSERT INTO User (login, password) VALUES (?,?)";
