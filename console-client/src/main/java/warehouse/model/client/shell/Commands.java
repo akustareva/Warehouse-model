@@ -7,6 +7,7 @@ import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import warehouse.model.entities.Goods;
 import warehouse.model.entities.Request;
@@ -19,6 +20,7 @@ import java.util.List;
 public class Commands implements CommandMarker {
     private RestTemplate restTemplate = new RestTemplate();
     private String serverAddress;
+    private String ERROR_MESSAGE = "Information isn't available now. Please, try again later.";
 
     @CliCommand(value = "set address", help = "Set new server address")
     public void setServerAddress(
@@ -35,20 +37,30 @@ public class Commands implements CommandMarker {
     }
 
     @CliCommand(value = "set wh address", help = "Set new server address")
-    public void setWHSAddress(
+    public String setWHSAddress(
             @CliOption(key = {"address ", ""}, mandatory = true, help = "WH server address") String address)
     {
-        restTemplate.put(serverAddress + "/address/" + address, null);
+        try {
+            restTemplate.put(serverAddress + "/address/" + address, null);
+        } catch (RestClientException e) {
+            return "Address was't changed. Please, try again later.";
+        }
+        return "Address was successfully changed";
     }
 
     @CliCommand(value = "sign up", help = "Sign up new user")
     public String signUp(
-            @CliOption(key = {"login"}, mandatory = true, help = "User login") String login,
-            @CliOption(key = {"password"}, mandatory = true, help = "User password") String password)
+            @CliOption(key = {"l"}, mandatory = true, help = "User login") String login,
+            @CliOption(key = {"p"}, mandatory = true, help = "User password") String password)
     {
-        int userId = restTemplate.postForObject(serverAddress + "/user", new User(login, password), Integer.class);
+        int userId;
+        try {
+            userId = restTemplate.postForObject(serverAddress + "/user", new User(login, password), Integer.class);
+        } catch (RestClientException e) {
+            return "Fail during connection to server";
+        }
         if (userId == -1) {
-            return "Fail";
+            return "Fail during adding to db";
         }
         return "New user id is " + userId;
     }
@@ -57,9 +69,14 @@ public class Commands implements CommandMarker {
     public String getCount(
             @CliOption(key = {"code"}, mandatory = true, help = "Unique product code") int uniqueCode)
     {
-        int count = restTemplate.getForObject(serverAddress + "/goods/" + uniqueCode, Integer.class);
+        int count;
+        try {
+            count = restTemplate.getForObject(serverAddress + "/goods/" + uniqueCode, Integer.class);
+        } catch (RestClientException e) {
+            return ERROR_MESSAGE;
+        }
         if (count == -1) {
-            return "Information isn't available now. Please, try again later.";
+            return ERROR_MESSAGE;
         }
         return "Now available " + count + " items.";
     }
@@ -67,16 +84,27 @@ public class Commands implements CommandMarker {
     @CliCommand(value = "show all", help = "Show all available goods")
     public String showAll()
     {
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode goods = restTemplate.getForObject(serverAddress + "/all_goods", JsonNode.class);
-        List<Goods> allGoods = null;
+        List<Goods> allGoods;
         try {
-            allGoods =  mapper.readValue(mapper.treeAsTokens(goods), new TypeReference<List<Goods>>(){});
-        } catch (IOException ignored) {}
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode goods = restTemplate.getForObject(serverAddress + "/all_goods", JsonNode.class);
+            if (goods == null) {
+                return ERROR_MESSAGE;
+            }
+            allGoods = null;
+            try {
+                allGoods = mapper.readValue(mapper.treeAsTokens(goods), new TypeReference<List<Goods>>() {
+                });
+            } catch (IOException ignored) {
+            }
+        } catch (RestClientException e) {
+            return ERROR_MESSAGE;
+        }
         StringBuilder sb = new StringBuilder();
         if (allGoods == null) {
-            return "Information isn't available now. Please, try again later.";
+            return ERROR_MESSAGE;
         }
+        sb.append("Total: ").append(allGoods.size()).append(" items:\n");
         for (Goods item : allGoods) {
             sb.append(item.toString()).append("\n");
         }
@@ -89,8 +117,25 @@ public class Commands implements CommandMarker {
             @CliOption(key = {"id"}, mandatory = true, help = "Product unique code") int unique_code,
             @CliOption(key = {"num"}, mandatory = true, help = "Number of products that user want to book") int amount)
     {
-        long orderId = restTemplate.postForObject(serverAddress + "/book", new Request(id, unique_code,
-                        amount, Request.RequestType.BOOKED), Long.class);
-        return "Id of your request is " + orderId;
+        long orderId;
+        try {
+            orderId = restTemplate.getForObject(serverAddress + "/new_order", Long.class);
+            restTemplate.postForObject(serverAddress + "/book", new Request(orderId, id, unique_code, amount), Long.class);
+        } catch (RestClientException e) {
+            return ERROR_MESSAGE;
+        }
+        return "Id of your request is " + orderId + ". Your order in progress.";
+    }
+
+    @CliCommand(value = "pay", help = "Pay the order")
+    public String pay(@CliOption(key = {"id"}, mandatory = true, help = "Order id") long id) {
+        restTemplate.put(serverAddress + "/payment/" + id, null);
+        return "Your order #" + id + " was paid.";
+    }
+
+    @CliCommand(value = "cancel", help = "Cancel the order")
+    public String cancel(@CliOption(key = {"id"}, mandatory = true, help = "Order id") long id) {
+        restTemplate.put(serverAddress + "/cancellation/" + id, null);
+        return "Your order #" + id + " was canceled.";
     }
 }

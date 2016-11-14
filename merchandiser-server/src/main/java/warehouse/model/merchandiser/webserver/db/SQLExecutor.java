@@ -49,11 +49,25 @@ public class SQLExecutor {
         return -1;
     }
 
-    public static void addNewRequest(Request request, Long id) {
-        int type_id = jdbcTemplate.queryForObject("SELECT id FROM OrderTypeList WHERE status = ?",
-                Integer.class, request.getType());
+    public static void addNewRequest(Request request) {
+        int type_id = jdbcTemplate.queryForObject("SELECT id FROM OrderTypeList WHERE type = ?",
+                Integer.class, request.getType().toString());
         jdbcTemplate.update(
-                "INSERT INTO Request (id, user_id, goods_id, quantity, type) VALUES (?, ?, ?, ?, ?)", id,
+                "INSERT INTO Request (id, user_id, goods_id, quantity, type) VALUES (?, ?, ?, ?, ?)", request.getId(),
                     request.getUserId(), request.getUniqueCode(), request.getAmount(), type_id);
+    }
+
+    public static void payOrder(long id) {
+        updateOrderType(id, "paid");
+    }
+
+    public static void cancelOrder(long id) {
+        updateOrderType(id, "canceled");
+    }
+
+    private static void updateOrderType(long id, String type) {
+        int type_id = jdbcTemplate.queryForObject("SELECT id FROM OrderTypeList WHERE type = ?",
+                Integer.class, type);
+        jdbcTemplate.update("UPDATE Request SET type = ? WHERE id = ?", type_id, id);
     }
 }

@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Request {
+    @JsonProperty("id")
+    private Long id;
     @JsonProperty("user")
     private int userId;
     @JsonProperty("code")
@@ -14,13 +16,18 @@ public class Request {
     private RequestType type;
 
     @JsonCreator
-    public Request(@JsonProperty("user") int userId, @JsonProperty("code") int uniqueCode,
-                   @JsonProperty("amount")int amount, @JsonProperty("type") RequestType type)
+    public Request(@JsonProperty("id") Long id, @JsonProperty("user") int userId, @JsonProperty("code") int uniqueCode,
+                   @JsonProperty("amount")int amount)
     {
+        this.id = id;
         this.userId = userId;
         this.uniqueCode = uniqueCode;
         this.amount = amount;
-        this.type = type;
+        this.type = RequestType.BOOKED;
+    }
+
+    public Long getId() {
+        return id;
     }
 
     public int getUserId() {

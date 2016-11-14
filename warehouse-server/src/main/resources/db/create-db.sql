@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS Request (
   goods_id Int NOT NULL,
   quantity INT,
   type INT,
-  date DATETIME,                               -- date and time of last submission
+  date TIMESTAMP,                               -- date and time of last submission
   attempts_count INT,                          -- number of submissions
   status INT,
 
