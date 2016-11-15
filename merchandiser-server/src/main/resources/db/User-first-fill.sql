@@ -1,0 +1,1 @@
+INSERT INTO User (login, password) VALUES ('an', 'an'), ('kir', 'z'), ('art', 'sl');

@@ -1,0 +1,1 @@
+INSERT INTO OrderTypeList VALUES (1, 'booked'), (2, 'paid'), (3, 'canceled');

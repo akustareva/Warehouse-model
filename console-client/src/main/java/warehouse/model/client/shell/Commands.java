@@ -36,7 +36,7 @@ public class Commands implements CommandMarker {
         this.serverAddress = address;
     }
 
-    @CliCommand(value = "set wh address", help = "Set new server address")
+    @CliCommand(value = "set wh address", help = "Set new wh server address")
     public String setWHSAddress(
             @CliOption(key = {"address ", ""}, mandatory = true, help = "WH server address") String address)
     {

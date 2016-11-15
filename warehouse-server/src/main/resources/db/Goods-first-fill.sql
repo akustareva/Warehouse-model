@@ -1,0 +1,1 @@
+INSERT INTO Goods VALUES (1, 234), (2, 34), (23, 456), (33, 1);
