@@ -14,6 +14,7 @@ import warehouse.model.merchandiser.webserver.db.SQLExecutor;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -42,6 +43,11 @@ public class Queries {
         } catch (RestClientException e) {
             return null;
         }
+    }
+
+    @RequestMapping(value = "/all_orders/{id}", method = RequestMethod.GET)
+    public List<Request> showAllOrders(@PathVariable int id) {
+        return  SQLExecutor.allUserOrders(id);
     }
 
     @RequestMapping(value = "/new_order", method = RequestMethod.GET)

@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS StatusList (
 CREATE TABLE IF NOT EXISTS Request (
   id BIGINT NOT NULL PRIMARY KEY,
   user_id INT NOT NULL,
-  goods_id INT NOT NULL UNIQUE,
+  goods_id INT NOT NULL,
   quantity INT,
   type INT,
   date TIMESTAMP,                             -- date and time of last submission

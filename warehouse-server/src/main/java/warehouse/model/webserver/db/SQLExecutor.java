@@ -12,6 +12,7 @@ import warehouse.model.entities.Request;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -64,7 +65,7 @@ public class SQLExecutor {
     }
 
     public static List<Goods> showAllGoods() {
-        List<Goods> goods = null;
+        List<Goods> goods = new ArrayList<>();
         try {
             goods = jdbcTemplate.query("SELECT * FROM Goods",
                     (rs, rowNum) -> new Goods(rs.getInt("id"), rs.getInt("quantity")));

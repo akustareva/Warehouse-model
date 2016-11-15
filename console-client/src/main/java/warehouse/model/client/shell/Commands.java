@@ -93,8 +93,7 @@ public class Commands implements CommandMarker {
             }
             allGoods = null;
             try {
-                allGoods = mapper.readValue(mapper.treeAsTokens(goods), new TypeReference<List<Goods>>() {
-                });
+                allGoods = mapper.readValue(mapper.treeAsTokens(goods), new TypeReference<List<Goods>>() {});
             } catch (IOException ignored) {
             }
         } catch (RestClientException e) {
@@ -137,5 +136,26 @@ public class Commands implements CommandMarker {
     public String cancel(@CliOption(key = {"id"}, mandatory = true, help = "Order id") long id) {
         restTemplate.put(serverAddress + "/cancellation/" + id, null);
         return "Your order #" + id + " was canceled.";
+    }
+
+    @CliCommand(value = "user orders", help = "All user orders wits status")
+    public String allUserOrders(@CliOption(key = {"id"}, mandatory = true, help = "User id") long id) {
+        List<Request> requests;
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode requestsJson = restTemplate.getForObject(serverAddress + "/all_orders/" + id, JsonNode.class);
+            requests = mapper.readValue(mapper.treeAsTokens(requestsJson), new TypeReference<List<Request>>() {});
+        } catch (RestClientException | IOException e) {
+            return ERROR_MESSAGE + ": " + e;
+        }
+        if (requests == null) {
+            return ERROR_MESSAGE;
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("Total: ").append(requests.size()).append(" orders:\n");
+        for (Request item : requests) {
+            sb.append(item.toString()).append("\n");
+        }
+        return sb.toString();
     }
 }

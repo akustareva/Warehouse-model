@@ -14,16 +14,24 @@ public class Request {
     private int amount;
     @JsonProperty("type")
     private RequestType type;
+    @JsonProperty("status")
+    private RequestStatus status;
+
+    public Request(Long id, int userId, int uniqueCode, int amount)
+    {
+        this(id, userId, uniqueCode, amount, RequestType.BOOKED, RequestStatus.IN_PROGRESS);
+    }
 
     @JsonCreator
     public Request(@JsonProperty("id") Long id, @JsonProperty("user") int userId, @JsonProperty("code") int uniqueCode,
-                   @JsonProperty("amount")int amount)
+                   @JsonProperty("amount")int amount, @JsonProperty("type") RequestType type, @JsonProperty("status") RequestStatus status)
     {
         this.id = id;
         this.userId = userId;
         this.uniqueCode = uniqueCode;
         this.amount = amount;
-        this.type = RequestType.BOOKED;
+        this.type = type;
+        this.status = status;
     }
 
     public Long getId() {
@@ -54,10 +62,14 @@ public class Request {
         return type;
     }
 
+    public RequestStatus getStatus() {
+        return status;
+    }
+
     @Override
     public String toString() {
-        return String.format("Request [user = %d, product = %d, amount = %d, type = %s]",
-                userId, uniqueCode, amount, type.toString());
+        return String.format("Request [user = %d, order = %d, product = %d, amount = %d, type = %s, status = %s]",
+                userId, id, uniqueCode, amount, type.toString(), status.toString());
     }
 
     public enum RequestType {
@@ -73,6 +85,48 @@ public class Request {
         @Override
         public String toString() {
             return text;
+        }
+
+        public static RequestType getRequestTypeFromString(String type) {
+            switch (type) {
+                case "booked":
+                    return BOOKED;
+                case "paid":
+                    return PAID;
+                case "canceled":
+                    return CANCELED;
+                default:
+                    return null;
+            }
+        }
+    }
+
+    public enum RequestStatus {
+        COMPLETED ("complete"),
+        IN_PROGRESS ("in progress"),
+        CANCELED ("canceled");
+
+        private String text;
+        RequestStatus(String text) {
+            this.text = text;
+        }
+
+        @Override
+        public String toString() {
+            return text;
+        }
+
+        public static RequestStatus getRequestStatusFromString(String type) {
+            switch (type) {
+                case "complete":
+                    return COMPLETED;
+                case "in progress":
+                    return IN_PROGRESS;
+                case "canceled":
+                    return CANCELED;
+                default:
+                    return null;
+            }
         }
     }
 }

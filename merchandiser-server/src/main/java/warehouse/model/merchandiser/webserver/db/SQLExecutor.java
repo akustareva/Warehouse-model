@@ -1,6 +1,7 @@
 package warehouse.model.merchandiser.webserver.db;
 
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
@@ -14,6 +15,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -91,7 +94,7 @@ public class SQLExecutor {
         int type_id = jdbcTemplate.queryForObject("SELECT id FROM OrderTypeList WHERE type = ?",
                 Integer.class, request.getType().toString());
         int status_id = jdbcTemplate.queryForObject("SELECT id FROM StatusList WHERE status = ?",
-                 Integer.class, "in progress");
+                 Integer.class, request.getStatus().toString());
         Timestamp time = new Timestamp(System.currentTimeMillis());
         jdbcTemplate.update(
                 "INSERT INTO Request (id, user_id, goods_id, quantity, type, date, attempts_count, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
@@ -116,5 +119,22 @@ public class SQLExecutor {
         jdbcTemplate.update("UPDATE Request SET status = ? WHERE id = ?", status_id, id);
         jdbcTemplate.update("UPDATE Request SET attempts_count = ? WHERE id = ?", 1, id);
         jdbcTemplate.update("UPDATE Request SET date = ? WHERE id = ?", time, id);
+    }
+
+    public static List<Request> allUserOrders(int id) {
+        List<Request> requests = new ArrayList<>();
+        try {
+            requests = jdbcTemplate.query("SELECT * FROM Request WHERE user_id = ?", new Object[]{id}, (rs, rowNum) -> {
+                int type = rs.getInt("type");
+                String typeName = jdbcTemplate.queryForObject("SELECT type FROM OrderTypeList WHERE id = ?",
+                        String.class, type);
+                int status = rs.getInt("status");
+                String statusName = jdbcTemplate.queryForObject("SELECT status FROM StatusList WHERE id = ?",
+                        String.class, status);
+                return new Request(rs.getLong("id"), rs.getInt("user_id"), rs.getInt("goods_id"), rs.getInt("quantity"),
+                        Request.RequestType.getRequestTypeFromString(typeName), Request.RequestStatus.getRequestStatusFromString(statusName));
+            });
+        }catch (DataAccessException ignored) {}
+        return requests;
     }
 }
