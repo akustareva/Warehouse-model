@@ -65,6 +65,23 @@ public class Commands implements CommandMarker {
         return "New user id is " + userId;
     }
 
+    @CliCommand(value = "login", help = "User authentication")
+    public String signIn(@CliOption(key = {"l"}, mandatory = true, help = "User login") String login,
+                         @CliOption(key = {"p"}, mandatory = true, help = "User password") String password)
+    {
+        int userId;
+        try {
+            userId = restTemplate.getForObject(serverAddress + "/check_user/" + login + "/" + password, Integer.class);
+        } catch (RestClientException e) {
+            return ERROR_MESSAGE;
+        }
+        if (userId == -1) {
+            return "The username or password you entered is incorrect.";
+        }
+        return "User Id is " + userId;
+    }
+
+
     @CliCommand(value = "get", help = "Checking the number of available product with specified code")
     public String getCount(
             @CliOption(key = {"code"}, mandatory = true, help = "Unique product code") int uniqueCode)

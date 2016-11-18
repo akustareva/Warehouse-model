@@ -90,6 +90,15 @@ public class SQLExecutor {
         return -1;
     }
 
+    public static Integer checkUser(User user) {
+        List<Integer> id = jdbcTemplate.query("SELECT id FROM User WHERE login = ? and password = ?",
+                new String[]{user.getLogin(), user.getPassword()}, (rs, rowNum) -> rs.getInt("id"));
+        if (id == null || id.size() == 0) {
+            return -1;
+        }
+        return id.get(0);
+    }
+
     public static void addNewRequest(Request request) {
         int type_id = jdbcTemplate.queryForObject("SELECT id FROM OrderTypeList WHERE type = ?",
                 Integer.class, request.getType().toString());

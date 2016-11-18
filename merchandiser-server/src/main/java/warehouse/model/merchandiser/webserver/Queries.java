@@ -75,6 +75,11 @@ public class Queries {
         return SQLExecutor.insert(user);
     }
 
+    @RequestMapping(value = "/check_user/{login}/{password}", method = RequestMethod.GET)
+    public Integer userSignIn(@PathVariable String login, @PathVariable String password) {
+        return SQLExecutor.checkUser(new User(login, password));
+    }
+
     @RequestMapping(value = "/book", method = RequestMethod.POST)
     public Long bookRequest(@RequestBody Request request) {
         SQLExecutor.addNewRequest(request);
