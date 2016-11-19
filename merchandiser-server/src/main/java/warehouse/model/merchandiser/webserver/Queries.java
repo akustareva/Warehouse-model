@@ -24,6 +24,7 @@ public class Queries {
     private static ResourceBundle bundle = ResourceBundle.getBundle("mh", Locale.US);
     private static final int MOD = 106033;
     private static int number = 0;
+    private static String DONE_STATUS = "done";
     private RestTemplate restTemplate = new RestTemplate();
     private String whServerAddress = bundle.getString("wh.server.default.address");
 
@@ -85,6 +86,7 @@ public class Queries {
         SQLExecutor.addNewRequest(request);
         try {
             restTemplate.postForObject(whServerAddress + "/book", request, Long.class);
+            SQLExecutor.updateOrderStatus(request.getId(), DONE_STATUS);
         } catch (RestClientException e) {
             return -1L;
         }
@@ -94,7 +96,10 @@ public class Queries {
     @RequestMapping(value = "/payment/{order_id}", method = RequestMethod.PUT)
     public void paymentRequest(@PathVariable long order_id) {
         SQLExecutor.payOrder(order_id);
-        restTemplate.put(whServerAddress + "/payment/" + order_id, null);
+        try {
+            restTemplate.put(whServerAddress + "/payment/" + order_id, null);
+            SQLExecutor.updateOrderStatus(order_id, DONE_STATUS);
+        } catch (RestClientException ignore) {}
     }
 
     @RequestMapping(value = "/cancellation/{order_id}", method = RequestMethod.PUT)

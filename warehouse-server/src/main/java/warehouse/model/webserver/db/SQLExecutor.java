@@ -53,7 +53,7 @@ public class SQLExecutor {
     }
 
     public static void insert(Goods goods) {
-        jdbcTemplate.update("INSERT INTO Goods VALUES (?, ?)", goods.getCode(), goods.getQuantity());
+        jdbcTemplate.update("INSERT INTO Goods VALUES (?, ?, ?)", goods.getCode(), goods.getQuantity(), goods.getName());
     }
 
     public static Integer getGoodsCount(int good_id) {
@@ -68,7 +68,7 @@ public class SQLExecutor {
         List<Goods> goods = new ArrayList<>();
         try {
             goods = jdbcTemplate.query("SELECT * FROM Goods",
-                    (rs, rowNum) -> new Goods(rs.getInt("id"), rs.getInt("quantity")));
+                    (rs, rowNum) -> new Goods(rs.getInt("id"), rs.getInt("quantity"), rs.getString("name")));
         } catch (DataAccessException ignored) {}
         return goods;
     }
@@ -84,6 +84,18 @@ public class SQLExecutor {
 
     public static void payOrder(long id) {
         updateOrderType(id, "paid");
+        int goodsId = jdbcTemplate.queryForObject("SELECT goods_id FROM Request WHERE id = ?",
+                Integer.class, id);
+        int availableCount = jdbcTemplate.queryForObject("SELECT quantity FROM Goods WHERE id = ?",
+                Integer.class, goodsId);
+        int bookedCount = jdbcTemplate.queryForObject("SELECT quantity FROM Request WHERE id = ?",
+                Integer.class, id);
+        if (bookedCount > availableCount) {
+            // TODO: returns error (bad request) (i. e. it is still in progress)
+        } else {
+            availableCount -= bookedCount;
+            jdbcTemplate.update("UPDATE Goods SET quantity = ? WHERE id = ?", availableCount, goodsId);
+        }
     }
 
     public static void cancelOrder(long id) {

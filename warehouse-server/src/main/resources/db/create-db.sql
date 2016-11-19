@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS Goods (
   id INT NOT NULL PRIMARY KEY,
-  quantity INT
+  quantity INT,
+  name VARCHAR(30)
 );
 
 CREATE TABLE IF NOT EXISTS OrderTypeList (

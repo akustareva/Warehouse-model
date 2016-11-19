@@ -100,10 +100,8 @@ public class SQLExecutor {
     }
 
     public static void addNewRequest(Request request) {
-        int type_id = jdbcTemplate.queryForObject("SELECT id FROM OrderTypeList WHERE type = ?",
-                Integer.class, request.getType().toString());
-        int status_id = jdbcTemplate.queryForObject("SELECT id FROM StatusList WHERE status = ?",
-                 Integer.class, request.getStatus().toString());
+        int type_id = getTypeId(request.getType().toString());
+        int status_id = getStatusId(request.getStatus().toString());
         Timestamp time = new Timestamp(System.currentTimeMillis());
         jdbcTemplate.update(
                 "INSERT INTO Request (id, user_id, goods_id, quantity, type, date, attempts_count, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
@@ -119,15 +117,33 @@ public class SQLExecutor {
     }
 
     private static void updateOrderType(long id, String type, String status) {
-        int type_id = jdbcTemplate.queryForObject("SELECT id FROM OrderTypeList WHERE type = ?",
-                Integer.class, type);
-        int status_id = jdbcTemplate.queryForObject("SELECT id FROM StatusList WHERE status = ?",
-                Integer.class, status);
-        Timestamp time = new Timestamp(System.currentTimeMillis());
+        int type_id = getTypeId(type);
+        int status_id = getStatusId(status);
         jdbcTemplate.update("UPDATE Request SET type = ? WHERE id = ?", type_id, id);
         jdbcTemplate.update("UPDATE Request SET status = ? WHERE id = ?", status_id, id);
-        jdbcTemplate.update("UPDATE Request SET attempts_count = ? WHERE id = ?", 1, id);
+        updateAttemptsCount(id, 0);
+    }
+
+    public static void updateOrderStatus(long id, String status) {
+        int status_id = getStatusId(status);
+        jdbcTemplate.update("UPDATE Request SET status = ? WHERE id = ?", status_id, id);
+        updateAttemptsCount(id, 0);
+    }
+
+    private static void updateAttemptsCount(long id, int attempts_count) {
+        Timestamp time = new Timestamp(System.currentTimeMillis());
+        jdbcTemplate.update("UPDATE Request SET attempts_count = ? WHERE id = ?", attempts_count, id);
         jdbcTemplate.update("UPDATE Request SET date = ? WHERE id = ?", time, id);
+    }
+
+    private static int getStatusId(String status) {
+        return jdbcTemplate.queryForObject("SELECT id FROM StatusList WHERE status = ?",
+                Integer.class, status);
+    }
+
+    private static int getTypeId(String type) {
+        return jdbcTemplate.queryForObject("SELECT id FROM OrderTypeList WHERE type = ?",
+                Integer.class, type);
     }
 
     public static List<Request> allUserOrders(int id) {

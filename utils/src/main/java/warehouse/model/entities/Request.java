@@ -102,7 +102,7 @@ public class Request {
     }
 
     public enum RequestStatus {
-        COMPLETED ("complete"),
+        DONE ("done"),
         IN_PROGRESS ("in progress"),
         CANCELED ("canceled");
 
@@ -118,8 +118,8 @@ public class Request {
 
         public static RequestStatus getRequestStatusFromString(String type) {
             switch (type) {
-                case "complete":
-                    return COMPLETED;
+                case "done":
+                    return DONE;
                 case "in progress":
                     return IN_PROGRESS;
                 case "canceled":

@@ -1,1 +1,1 @@
-INSERT INTO Goods VALUES (1, 234), (2, 34), (23, 456), (33, 1);
+INSERT INTO Goods VALUES (1, 234, 'apples'), (2, 34,'lemons'), (23, 456, 'eggs'), (33, 1, 'chocolates');
