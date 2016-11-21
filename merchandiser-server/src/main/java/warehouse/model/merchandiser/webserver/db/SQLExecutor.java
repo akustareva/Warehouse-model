@@ -91,8 +91,13 @@ public class SQLExecutor {
     }
 
     public static Integer checkUser(User user) {
-        List<Integer> id = jdbcTemplate.query("SELECT id FROM User WHERE login = ? and password = ?",
-                new String[]{user.getLogin(), user.getPassword()}, (rs, rowNum) -> rs.getInt("id"));
+        List<Integer> id;
+        try {
+            id = jdbcTemplate.query("SELECT id FROM User WHERE login = ? and password = ?",
+                    new String[]{user.getLogin(), user.getPassword()}, (rs, rowNum) -> rs.getInt("id"));
+        } catch (DataAccessException e) {
+            return -1;
+        }
         if (id == null || id.size() == 0) {
             return -1;
         }
@@ -159,7 +164,9 @@ public class SQLExecutor {
                 return new Request(rs.getLong("id"), rs.getInt("user_id"), rs.getInt("goods_id"), rs.getInt("quantity"),
                         Request.RequestType.getRequestTypeFromString(typeName), Request.RequestStatus.getRequestStatusFromString(statusName));
             });
-        }catch (DataAccessException ignored) {}
+        } catch (DataAccessException e) {
+            return null;
+        }
         return requests;
     }
 }

@@ -57,7 +57,7 @@ public class SQLExecutor {
     }
 
     public static Integer getGoodsCount(int good_id) {
-        int quantity = -1;
+        Integer quantity = -1;
         try {
             quantity = jdbcTemplate.queryForObject("SELECT quantity FROM GOODS WHERE id = ?", Integer.class, good_id);
         } catch (DataAccessException ignored) {}
@@ -69,7 +69,9 @@ public class SQLExecutor {
         try {
             goods = jdbcTemplate.query("SELECT * FROM Goods",
                     (rs, rowNum) -> new Goods(rs.getInt("id"), rs.getInt("quantity"), rs.getString("name")));
-        } catch (DataAccessException ignored) {}
+        } catch (DataAccessException e) {
+            return null;
+        }
         return goods;
     }
 

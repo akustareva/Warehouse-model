@@ -1,6 +1,9 @@
 package warehouse.model.merchandiser.webserver;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,34 +32,38 @@ public class Queries {
     private String whServerAddress = bundle.getString("wh.server.default.address");
 
     @RequestMapping(value = "/goods/{good_id}", method = RequestMethod.GET)
-    public Integer checkRequest(@PathVariable int good_id) {
+    public ResponseEntity<Integer> checkRequest(@PathVariable int good_id) {
         try {
-            return restTemplate.getForObject(whServerAddress + "/goods/" + good_id, Integer.class);
+            return restTemplate.getForEntity(whServerAddress + "/goods/" + good_id, Integer.class);
         } catch (RestClientException e) {
-            return -1;
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @RequestMapping(value = "/all_goods", method = RequestMethod.GET)
-    public JsonNode showRequest() {
+    public ResponseEntity<JsonNode> showRequest() {
         try {
-            return restTemplate.getForObject(whServerAddress + "/all_goods", JsonNode.class);
+            return restTemplate.getForEntity(whServerAddress + "/all_goods", JsonNode.class);
         } catch (RestClientException e) {
-            return null;
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    @RequestMapping(value = "/all_orders/{id}", method = RequestMethod.GET)
-    public List<Request> showAllOrders(@PathVariable int id) {
-        return  SQLExecutor.allUserOrders(id);
+    @RequestMapping(value = "/all_user_orders/{id}", method = RequestMethod.GET)
+    public ResponseEntity<List<Request>> showAllOrders(@PathVariable int id) {
+        List<Request> orders = SQLExecutor.allUserOrders(id);
+        if (orders == null) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return  new ResponseEntity<>(orders, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/new_order", method = RequestMethod.GET)
-    public Long getNewOrderId() {
+    @RequestMapping(value = "/new_order_number", method = RequestMethod.GET)
+    public ResponseEntity<Long> getNewOrderId() {
         number = (number + 1) % MOD;
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
         String tmp = dateFormat.format(new Date()) + number;
-        return Long.parseLong(tmp);
+        return new ResponseEntity<>(Long.parseLong(tmp), HttpStatus.CREATED);
     }
 
     @RequestMapping(value = "/address/{address}", method = RequestMethod.PUT)
@@ -71,40 +78,54 @@ public class Queries {
         this.whServerAddress = address;
     }
 
-    @RequestMapping(value = "/user", method = RequestMethod.POST)
-    public Integer userSignUp(@RequestBody User user) {
-        return SQLExecutor.insert(user);
+    @RequestMapping(value = "/new_user", method = RequestMethod.POST)
+    public ResponseEntity<Integer> userSignUp(@RequestBody User user) {
+        Integer userId = SQLExecutor.insert(user);
+        if (userId == -1) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return new ResponseEntity<>(userId, HttpStatus.CREATED);
     }
 
-    @RequestMapping(value = "/check_user/{login}/{password}", method = RequestMethod.GET)
-    public Integer userSignIn(@PathVariable String login, @PathVariable String password) {
-        return SQLExecutor.checkUser(new User(login, password));
+    @RequestMapping(value = "/user_existence/{login}/{password}", method = RequestMethod.GET)
+    public ResponseEntity<Integer> userSignIn(@PathVariable String login, @PathVariable String password) {
+        Integer userId = SQLExecutor.checkUser(new User(login, password));
+        if (userId == -1) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return new ResponseEntity<>(userId, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/book", method = RequestMethod.POST)
-    public Long bookRequest(@RequestBody Request request) {
-        SQLExecutor.addNewRequest(request);
+    public ResponseEntity<Long> bookRequest(@RequestBody Request request) {
         try {
-            restTemplate.postForObject(whServerAddress + "/book", request, Long.class);
-            SQLExecutor.updateOrderStatus(request.getId(), DONE_STATUS);
-        } catch (RestClientException e) {
-            return -1L;
+            SQLExecutor.addNewRequest(request);
+        } catch (DataAccessException e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return request.getId();
+        try {
+            ResponseEntity<Long> id = restTemplate.postForEntity(whServerAddress + "/book", request, Long.class);
+            if (id != null && id.getStatusCode() == HttpStatus.OK) {
+                SQLExecutor.updateOrderStatus(request.getId(), DONE_STATUS);
+            }
+        } catch (RestClientException | DataAccessException ignored) {}
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/payment/{order_id}", method = RequestMethod.PUT)
-    public void paymentRequest(@PathVariable long order_id) {
-        SQLExecutor.payOrder(order_id);
+    @RequestMapping(value = "/payment/{orderId}", method = RequestMethod.PUT)
+    public void paymentRequest(@PathVariable long orderId) {
+        SQLExecutor.payOrder(orderId);
         try {
-            restTemplate.put(whServerAddress + "/payment/" + order_id, null);
-            SQLExecutor.updateOrderStatus(order_id, DONE_STATUS);
+            restTemplate.put(whServerAddress + "/payment/" + orderId, null);
+            SQLExecutor.updateOrderStatus(orderId, DONE_STATUS);
         } catch (RestClientException ignore) {}
     }
 
-    @RequestMapping(value = "/cancellation/{order_id}", method = RequestMethod.PUT)
-    public void cancelRequest(@PathVariable long order_id) {
-        SQLExecutor.cancelOrder(order_id);
-        restTemplate.put(whServerAddress + "/cancellation/" + order_id, null);
+    @RequestMapping(value = "/cancellation/{orderId}", method = RequestMethod.PUT)
+    public void cancelRequest(@PathVariable long orderId) {
+        SQLExecutor.cancelOrder(orderId);
+        try {
+            restTemplate.put(whServerAddress + "/cancellation/" + orderId, null);
+        } catch (RestClientException ignore) {}
     }
 }

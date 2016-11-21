@@ -3,6 +3,8 @@ package warehouse.model.client.shell;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
@@ -53,32 +55,32 @@ public class Commands implements CommandMarker {
             @CliOption(key = {"l"}, mandatory = true, help = "User login") String login,
             @CliOption(key = {"p"}, mandatory = true, help = "User password") String password)
     {
-        int userId;
+        ResponseEntity<Integer> userId;
         try {
-            userId = restTemplate.postForObject(serverAddress + "/user", new User(login, password), Integer.class);
+            userId = restTemplate.postForEntity(serverAddress + "/new_user", new User(login, password), Integer.class);
         } catch (RestClientException e) {
-            return "Fail during connection to server";
+            return ERROR_MESSAGE;
         }
-        if (userId == -1) {
-            return "Fail during adding to db";
+        if (userId == null || userId.getStatusCode() != HttpStatus.CREATED) {
+            return ERROR_MESSAGE;
         }
-        return "New user id is " + userId;
+        return "New user id is " + userId.getBody();
     }
 
     @CliCommand(value = "login", help = "User authentication")
     public String signIn(@CliOption(key = {"l"}, mandatory = true, help = "User login") String login,
                          @CliOption(key = {"p"}, mandatory = true, help = "User password") String password)
     {
-        int userId;
+        ResponseEntity<Integer> userId;
         try {
-            userId = restTemplate.getForObject(serverAddress + "/check_user/" + login + "/" + password, Integer.class);
+            userId = restTemplate.getForEntity(serverAddress + "/user_existence/" + login + "/" + password, Integer.class);
         } catch (RestClientException e) {
             return ERROR_MESSAGE;
         }
-        if (userId == -1) {
+        if (userId == null || userId.getStatusCode() != HttpStatus.OK) {
             return "The username or password you entered is incorrect.";
         }
-        return "User Id is " + userId;
+        return "User Id is " + userId.getBody();
     }
 
 
@@ -86,16 +88,16 @@ public class Commands implements CommandMarker {
     public String getCount(
             @CliOption(key = {"code"}, mandatory = true, help = "Unique product code") int uniqueCode)
     {
-        int count;
+        ResponseEntity<Integer> count;
         try {
-            count = restTemplate.getForObject(serverAddress + "/goods/" + uniqueCode, Integer.class);
+            count = restTemplate.getForEntity(serverAddress + "/goods/" + uniqueCode, Integer.class);
         } catch (RestClientException e) {
             return ERROR_MESSAGE;
         }
-        if (count == -1) {
+        if (count == null || count.getStatusCode() != HttpStatus.OK) {
             return ERROR_MESSAGE;
         }
-        return "Now available " + count + " items.";
+        return "Now available " + count.getBody() + " items.";
     }
 
     @CliCommand(value = "show all", help = "Show all available goods")
@@ -104,15 +106,14 @@ public class Commands implements CommandMarker {
         List<Goods> allGoods;
         try {
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode goods = restTemplate.getForObject(serverAddress + "/all_goods", JsonNode.class);
-            if (goods == null) {
+            ResponseEntity<JsonNode> goods = restTemplate.getForEntity(serverAddress + "/all_goods", JsonNode.class);
+            if (goods == null || goods.getStatusCode() != HttpStatus.OK) {
                 return ERROR_MESSAGE;
             }
             allGoods = null;
             try {
-                allGoods = mapper.readValue(mapper.treeAsTokens(goods), new TypeReference<List<Goods>>() {});
-            } catch (IOException ignored) {
-            }
+                allGoods = mapper.readValue(mapper.treeAsTokens(goods.getBody()), new TypeReference<List<Goods>>() {});
+            } catch (IOException ignored) {}
         } catch (RestClientException e) {
             return ERROR_MESSAGE;
         }
@@ -133,14 +134,20 @@ public class Commands implements CommandMarker {
             @CliOption(key = {"id"}, mandatory = true, help = "Product unique code") int unique_code,
             @CliOption(key = {"num"}, mandatory = true, help = "Number of products that user want to book") int amount)
     {
-        long orderId;
+        ResponseEntity<Long> orderId;
         try {
-            orderId = restTemplate.getForObject(serverAddress + "/new_order", Long.class);
-            restTemplate.postForObject(serverAddress + "/book", new Request(orderId, id, unique_code, amount), Long.class);
+            orderId = restTemplate.getForEntity(serverAddress + "/new_order_number", Long.class);
+            if (orderId == null || orderId.getStatusCode() != HttpStatus.CREATED) {
+                return ERROR_MESSAGE;
+            }
+            ResponseEntity<Long> isSuccessful = restTemplate.postForEntity(serverAddress + "/book", new Request(orderId.getBody(), id, unique_code, amount), Long.class);
+            if (isSuccessful == null || isSuccessful.getStatusCode() != HttpStatus.OK) {
+                return ERROR_MESSAGE;
+            }
         } catch (RestClientException e) {
             return ERROR_MESSAGE;
         }
-        return "Id of your request is " + orderId + ". Your order in progress.";
+        return "Id of your request is " + orderId.getBody() + ". Your order in progress.";
     }
 
     @CliCommand(value = "pay", help = "Pay the order")
@@ -160,8 +167,11 @@ public class Commands implements CommandMarker {
         List<Request> requests;
         try {
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode requestsJson = restTemplate.getForObject(serverAddress + "/all_orders/" + id, JsonNode.class);
-            requests = mapper.readValue(mapper.treeAsTokens(requestsJson), new TypeReference<List<Request>>() {});
+            ResponseEntity<JsonNode> requestsJson = restTemplate.getForEntity(serverAddress + "/all_user_orders/" + id, JsonNode.class);
+            if (requestsJson == null || requestsJson.getStatusCode() != HttpStatus.OK) {
+                return ERROR_MESSAGE;
+            }
+            requests = mapper.readValue(mapper.treeAsTokens(requestsJson.getBody()), new TypeReference<List<Request>>() {});
         } catch (RestClientException | IOException e) {
             return ERROR_MESSAGE + ": " + e;
         }
