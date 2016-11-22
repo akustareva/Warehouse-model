@@ -66,23 +66,13 @@ public class Queries {
         return new ResponseEntity<>(Long.parseLong(tmp), HttpStatus.CREATED);
     }
 
-    @RequestMapping(value = "/address/{address}", method = RequestMethod.PUT)
-    public void setAddress(@PathVariable String address) {
-        if (!(address.startsWith("http") || address.startsWith("https"))) {
-            address = "http://" + address;
-        }
-        if (!address.endsWith("/")) {
-            address += "/";
-        }
-        address += "wh";
-        this.whServerAddress = address;
-    }
-
     @RequestMapping(value = "/new_user", method = RequestMethod.POST)
     public ResponseEntity<Integer> userSignUp(@RequestBody User user) {
         Integer userId = SQLExecutor.insert(user);
         if (userId == -1) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        } else if (userId == -2) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         return new ResponseEntity<>(userId, HttpStatus.CREATED);
     }
@@ -92,6 +82,8 @@ public class Queries {
         Integer userId = SQLExecutor.checkUser(new User(login, password));
         if (userId == -1) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        } else if (userId == -2) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         return new ResponseEntity<>(userId, HttpStatus.OK);
     }
@@ -127,5 +119,12 @@ public class Queries {
         try {
             restTemplate.put(whServerAddress + "/cancellation/" + orderId, null);
         } catch (RestClientException ignore) {}
+    }
+
+    @RequestMapping(value = "/reset/{adminPassword}", method = RequestMethod.PUT)
+    public void resetAttemptsCount(@PathVariable String adminPassword) {
+        if (adminPassword.equals(bundle.getString("admin.password"))) {
+            SQLExecutor.resetAttemptsCount();
+        }
     }
 }

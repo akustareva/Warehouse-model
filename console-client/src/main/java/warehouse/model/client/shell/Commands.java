@@ -9,6 +9,7 @@ import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import warehouse.model.entities.Goods;
@@ -38,18 +39,6 @@ public class Commands implements CommandMarker {
         this.serverAddress = address;
     }
 
-    @CliCommand(value = "set wh address", help = "Set new wh server address")
-    public String setWHSAddress(
-            @CliOption(key = {"address ", ""}, mandatory = true, help = "WH server address") String address)
-    {
-        try {
-            restTemplate.put(serverAddress + "/address/" + address, null);
-        } catch (RestClientException e) {
-            return "Address was't changed. Please, try again later.";
-        }
-        return "Address was successfully changed";
-    }
-
     @CliCommand(value = "sign up", help = "Sign up new user")
     public String signUp(
             @CliOption(key = {"l"}, mandatory = true, help = "User login") String login,
@@ -58,10 +47,15 @@ public class Commands implements CommandMarker {
         ResponseEntity<Integer> userId;
         try {
             userId = restTemplate.postForEntity(serverAddress + "/new_user", new User(login, password), Integer.class);
-        } catch (RestClientException e) {
+        } catch (HttpStatusCodeException e) {
+            if (e.getStatusCode()== HttpStatus.INTERNAL_SERVER_ERROR) {
+                return ERROR_MESSAGE;
+            }
+            if (e.getStatusCode()== HttpStatus.BAD_REQUEST) {
+                return "This login already exists.";
+            }
             return ERROR_MESSAGE;
-        }
-        if (userId == null || userId.getStatusCode() != HttpStatus.CREATED) {
+        } catch (RestClientException e) {
             return ERROR_MESSAGE;
         }
         return "New user id is " + userId.getBody();
@@ -74,11 +68,16 @@ public class Commands implements CommandMarker {
         ResponseEntity<Integer> userId;
         try {
             userId = restTemplate.getForEntity(serverAddress + "/user_existence/" + login + "/" + password, Integer.class);
+        } catch (HttpStatusCodeException e) {
+            if (e.getStatusCode()== HttpStatus.INTERNAL_SERVER_ERROR) {
+                return ERROR_MESSAGE;
+            }
+            if (e.getStatusCode()== HttpStatus.BAD_REQUEST) {
+                return "The username or password is incorrect.";
+            }
+            return ERROR_MESSAGE;
         } catch (RestClientException e) {
             return ERROR_MESSAGE;
-        }
-        if (userId == null || userId.getStatusCode() != HttpStatus.OK) {
-            return "The username or password you entered is incorrect.";
         }
         return "User Id is " + userId.getBody();
     }
@@ -184,5 +183,15 @@ public class Commands implements CommandMarker {
             sb.append(item.toString()).append("\n");
         }
         return sb.toString();
+    }
+
+    @CliCommand(value = "reset", help = "Reset attempts count of all requests to 0")
+    public String resetAttemptsCount(@CliOption(key = {"p"}, mandatory = true, help = "Admin password") String password) {
+        try {
+            restTemplate.put(serverAddress + "/reset/" + password, null);
+        } catch (RestClientException e) {
+            return ERROR_MESSAGE;
+        }
+        return "Attempts were changed.";
     }
 }

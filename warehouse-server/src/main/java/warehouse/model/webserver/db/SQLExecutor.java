@@ -11,11 +11,8 @@ import warehouse.model.entities.Request;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.ResourceBundle;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class SQLExecutor {
     private static JdbcTemplate jdbcTemplate;
@@ -76,12 +73,10 @@ public class SQLExecutor {
     }
 
     public static void addNewRequest(Request request) {
-        int type_id = jdbcTemplate.queryForObject("SELECT id FROM OrderTypeList WHERE type = ?",
-                Integer.class, request.getType().toString());
-        Timestamp time = new Timestamp(System.currentTimeMillis());
+        int typeId = getTypeId(request.getType().toString());
         jdbcTemplate.update(
                 "INSERT INTO Request (id, user_id, goods_id, quantity, type) VALUES (?, ?, ?, ?, ?)",
-                    request.getId(), request.getUserId(), request.getUniqueCode(), request.getAmount(), type_id);
+                    request.getId(), request.getUserId(), request.getUniqueCode(), request.getAmount(), typeId);
     }
 
     public static void payOrder(long id) {
@@ -105,8 +100,30 @@ public class SQLExecutor {
     }
 
     private static void updateOrderType(long id, String type) {
-        int type_id = jdbcTemplate.queryForObject("SELECT id FROM OrderTypeList WHERE type = ?",
+        int typeId = getTypeId(type);
+        jdbcTemplate.update("UPDATE Request SET type = ? WHERE id = ?", typeId, id);
+    }
+
+    public static void deleteOldRequests() {
+        try {
+            jdbcTemplate.query("SELECT * FROM Request", rs -> {
+                int type = rs.getInt("type");
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
+                String curDate = dateFormat.format(new Date());
+                long requestId = rs.getLong("id");
+                String prevDate = (String.valueOf(requestId)).substring(0, 8);
+                int cur = Integer.parseInt(curDate);
+                int prev = Integer.parseInt(prevDate);
+                int dif = cur - prev;
+                if (type == getTypeId("canceled") || (type == getTypeId("booked") && dif >= 300)) {
+                    jdbcTemplate.update("DELETE FROM Request WHERE id = ?", requestId);
+                }
+            });
+        } catch (DataAccessException ignored) {}
+    }
+
+    private static int getTypeId(String type) {
+        return jdbcTemplate.queryForObject("SELECT id FROM OrderTypeList WHERE type = ?",
                 Integer.class, type);
-        jdbcTemplate.update("UPDATE Request SET type = ? WHERE id = ?", type_id, id);
     }
 }

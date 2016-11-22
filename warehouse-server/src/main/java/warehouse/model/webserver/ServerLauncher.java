@@ -5,11 +5,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.JLineShellComponent;
 import warehouse.model.webserver.shell.Commands;
 
 @SpringBootApplication
+@EnableScheduling
 public class ServerLauncher {
     private static final Logger log = LoggerFactory.getLogger(ServerLauncher.class);
 
