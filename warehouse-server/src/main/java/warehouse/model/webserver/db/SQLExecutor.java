@@ -2,6 +2,7 @@ package warehouse.model.webserver.db;
 
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
@@ -72,31 +73,46 @@ public class SQLExecutor {
         return goods;
     }
 
-    public static void addNewRequest(Request request) {
-        int typeId = getTypeId(request.getType().toString());
-        jdbcTemplate.update(
-                "INSERT INTO Request (id, user_id, goods_id, quantity, type) VALUES (?, ?, ?, ?, ?)",
+    public static HttpStatus addNewRequest(Request request) {
+        try {
+            int typeId = getTypeId(request.getType().toString());
+            jdbcTemplate.update(
+                    "INSERT INTO Request (id, user_id, goods_id, quantity, type) VALUES (?, ?, ?, ?, ?)",
                     request.getId(), request.getUserId(), request.getUniqueCode(), request.getAmount(), typeId);
-    }
-
-    public static void payOrder(long id) {
-        updateOrderType(id, "paid");
-        int goodsId = jdbcTemplate.queryForObject("SELECT goods_id FROM Request WHERE id = ?",
-                Integer.class, id);
-        int availableCount = jdbcTemplate.queryForObject("SELECT quantity FROM Goods WHERE id = ?",
-                Integer.class, goodsId);
-        int bookedCount = jdbcTemplate.queryForObject("SELECT quantity FROM Request WHERE id = ?",
-                Integer.class, id);
-        if (bookedCount > availableCount) {
-            // TODO: returns error (bad request) (i. e. it is still in progress)
-        } else {
-            availableCount -= bookedCount;
-            jdbcTemplate.update("UPDATE Goods SET quantity = ? WHERE id = ?", availableCount, goodsId);
+            return HttpStatus.OK;
+        } catch (DataAccessException e) {
+            return HttpStatus.INTERNAL_SERVER_ERROR;
         }
     }
 
-    public static void cancelOrder(long id) {
-        updateOrderType(id, "canceled");
+    public static HttpStatus payOrder(long id) {
+        try {
+            updateOrderType(id, "paid");
+            int goodsId = jdbcTemplate.queryForObject("SELECT goods_id FROM Request WHERE id = ?",
+                    Integer.class, id);
+            int availableCount = jdbcTemplate.queryForObject("SELECT quantity FROM Goods WHERE id = ?",
+                    Integer.class, goodsId);
+            int bookedCount = jdbcTemplate.queryForObject("SELECT quantity FROM Request WHERE id = ?",
+                    Integer.class, id);
+            if (bookedCount > availableCount) {
+                return HttpStatus.NOT_ACCEPTABLE;
+            } else {
+                availableCount -= bookedCount;
+                jdbcTemplate.update("UPDATE Goods SET quantity = ? WHERE id = ?", availableCount, goodsId);
+                return HttpStatus.OK;
+            }
+        } catch (DataAccessException e) {
+            return HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+    }
+
+    public static HttpStatus cancelOrder(long id) {
+        try {
+            updateOrderType(id, "canceled");
+            return HttpStatus.OK;
+        } catch (DataAccessException e) {
+            return HttpStatus.INTERNAL_SERVER_ERROR;
+        }
     }
 
     private static void updateOrderType(long id, String type) {

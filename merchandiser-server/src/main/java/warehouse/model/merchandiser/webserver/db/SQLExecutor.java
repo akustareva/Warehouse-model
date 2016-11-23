@@ -2,6 +2,7 @@ package warehouse.model.merchandiser.webserver.db;
 
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
@@ -103,13 +104,18 @@ public class SQLExecutor {
         return id.get(0);
     }
 
-    public static void addNewRequest(Request request) {
-        int type_id = getTypeId(request.getType().toString());
-        int status_id = getStatusId(request.getStatus().toString());
-        Timestamp time = new Timestamp(System.currentTimeMillis());
-        jdbcTemplate.update(
-                "INSERT INTO Request (id, user_id, goods_id, quantity, type, date, attempts_count, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    public static HttpStatus addNewRequest(Request request) {
+        try {
+            int type_id = getTypeId(request.getType().toString());
+            int status_id = getStatusId(request.getStatus().toString());
+            Timestamp time = new Timestamp(System.currentTimeMillis());
+            jdbcTemplate.update(
+                    "INSERT INTO Request (id, user_id, goods_id, quantity, type, date, attempts_count, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                     request.getId(), request.getUserId(), request.getUniqueCode(), request.getAmount(), type_id, time, 1, status_id);
+            return HttpStatus.OK;
+        } catch (DataAccessException e) {
+            return HttpStatus.INTERNAL_SERVER_ERROR;
+        }
     }
 
     public static void payOrder(long id) {
@@ -207,13 +213,16 @@ public class SQLExecutor {
         } catch (DataAccessException ignored) {}
     }
 
-    public static void resetAttemptsCount() {
+    public static HttpStatus resetAttemptsCount() {
         try {
             jdbcTemplate.query("SELECT * FROM Request WHERE attempts_count >= ?", new Object[]{MAX_ATTEMPT_COUNT}, rs -> {
                 long id = rs.getLong("id");
                 jdbcTemplate.update("UPDATE Request SET attempts_count = 0 WHERE id = ?", id);
             });
-        } catch (DataAccessException ignored) {}
+            return HttpStatus.OK;
+        } catch (DataAccessException e) {
+            return HttpStatus.INTERNAL_SERVER_ERROR;
+        }
     }
 
     private static int getStatusId(String status) {

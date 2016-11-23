@@ -89,19 +89,18 @@ public class Queries {
     }
 
     @RequestMapping(value = "/book", method = RequestMethod.POST)
-    public ResponseEntity<Long> bookRequest(@RequestBody Request request) {
-        try {
-            SQLExecutor.addNewRequest(request);
-        } catch (DataAccessException e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    public ResponseEntity bookRequest(@RequestBody Request request) {
+        HttpStatus status = SQLExecutor.addNewRequest(request);
+        if (status != HttpStatus.OK) {
+            return new ResponseEntity(status);
         }
         try {
-            ResponseEntity<Long> id = restTemplate.postForEntity(whServerAddress + "/book", request, Long.class);
-            if (id != null && id.getStatusCode() == HttpStatus.OK) {
+            ResponseEntity response = restTemplate.postForEntity(whServerAddress + "/book", request, Object.class);
+            if (response != null && response.getStatusCode() == HttpStatus.OK) {
                 SQLExecutor.updateOrderStatus(request.getId(), DONE_STATUS);
             }
         } catch (RestClientException | DataAccessException ignored) {}
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity(HttpStatus.OK);
     }
 
     @RequestMapping(value = "/payment/{orderId}", method = RequestMethod.PUT)
@@ -122,9 +121,11 @@ public class Queries {
     }
 
     @RequestMapping(value = "/reset/{adminPassword}", method = RequestMethod.PUT)
-    public void resetAttemptsCount(@PathVariable String adminPassword) {
+    public ResponseEntity resetAttemptsCount(@PathVariable String adminPassword) {
         if (adminPassword.equals(bundle.getString("admin.password"))) {
-            SQLExecutor.resetAttemptsCount();
+            HttpStatus status = SQLExecutor.resetAttemptsCount();
+            return new ResponseEntity(status);
         }
+        return new ResponseEntity(HttpStatus.BAD_REQUEST);
     }
 }

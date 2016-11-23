@@ -139,7 +139,7 @@ public class Commands implements CommandMarker {
             if (orderId == null || orderId.getStatusCode() != HttpStatus.CREATED) {
                 return ERROR_MESSAGE;
             }
-            ResponseEntity<Long> isSuccessful = restTemplate.postForEntity(serverAddress + "/book", new Request(orderId.getBody(), id, unique_code, amount), Long.class);
+            ResponseEntity isSuccessful = restTemplate.postForEntity(serverAddress + "/book", new Request(orderId.getBody(), id, unique_code, amount), Object.class);
             if (isSuccessful == null || isSuccessful.getStatusCode() != HttpStatus.OK) {
                 return ERROR_MESSAGE;
             }
@@ -189,6 +189,13 @@ public class Commands implements CommandMarker {
     public String resetAttemptsCount(@CliOption(key = {"p"}, mandatory = true, help = "Admin password") String password) {
         try {
             restTemplate.put(serverAddress + "/reset/" + password, null);
+        } catch (HttpStatusCodeException e) {
+            if (e.getStatusCode() == HttpStatus.BAD_REQUEST) {
+                return "Invalid password";
+            }
+            if (e.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
+                return ERROR_MESSAGE;
+            }
         } catch (RestClientException e) {
             return ERROR_MESSAGE;
         }

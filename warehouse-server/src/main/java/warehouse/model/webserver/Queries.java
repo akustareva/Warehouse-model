@@ -1,13 +1,8 @@
 package warehouse.model.webserver;
 
-import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import warehouse.model.entities.Goods;
 import warehouse.model.entities.Request;
 import warehouse.model.webserver.db.SQLExecutor;
@@ -42,22 +37,20 @@ public class Queries {
     }
 
     @RequestMapping(value = "/book", method = RequestMethod.POST)
-    public ResponseEntity<Long> bookRequest(@RequestBody Request request) {
-        try {
-            SQLExecutor.addNewRequest(request);
-        } catch (DataAccessException e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        return new ResponseEntity<>(request.getId(), HttpStatus.OK);
+    public ResponseEntity bookRequest(@RequestBody Request request) {
+        HttpStatus status = SQLExecutor.addNewRequest(request);
+        return new ResponseEntity(status);
     }
 
     @RequestMapping(value = "/payment/{order_id}", method = RequestMethod.PUT)
-    public void paymentRequest(@PathVariable long order_id) {
-        SQLExecutor.payOrder(order_id);
+    public ResponseEntity paymentRequest(@PathVariable long order_id) {
+        HttpStatus status = SQLExecutor.payOrder(order_id);
+        return new ResponseEntity(status);
     }
 
     @RequestMapping(value = "/cancellation/{order_id}", method = RequestMethod.PUT)
-    public void cancelRequest(@PathVariable long order_id) {
-        SQLExecutor.cancelOrder(order_id);
+    public ResponseEntity cancelRequest(@PathVariable long order_id) {
+        HttpStatus status = SQLExecutor.cancelOrder(order_id);
+        return new ResponseEntity(status);
     }
 }
