@@ -50,8 +50,38 @@ public class SQLExecutor {
         }
     }
 
-    public static void insert(Goods goods) {
-        jdbcTemplate.update("INSERT INTO Goods VALUES (?, ?, ?)", goods.getCode(), goods.getQuantity(), goods.getName());
+    public static HttpStatus insert(Goods goods) {
+        try {
+            jdbcTemplate.update("INSERT INTO Goods VALUES (?, ?, ?)", goods.getCode(), goods.getQuantity(), goods.getName());
+            return HttpStatus.OK;
+        } catch (DataAccessException e) {
+            return HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+    }
+
+    public static HttpStatus insertSeveralGoods(List<Goods> goods) {
+        StringJoiner sql = new StringJoiner(", ", "INSERT INTO Goods VALUES ", ";");
+        for (Goods g : goods) {
+            sql.add(g.toQuery());
+        }
+        try {
+            jdbcTemplate.update(sql.toString());
+            return HttpStatus.OK;
+        } catch (DataAccessException e) {
+            return HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+    }
+
+    public static HttpStatus updateProductCount(int id, int add) {
+        try {
+            int currentCount = jdbcTemplate.queryForObject("SELECT quantity FROM Goods WHERE id = ?",
+                    Integer.class, id);
+            currentCount += add;
+            jdbcTemplate.update("UPDATE Goods SET quantity = ? WHERE id = ?", currentCount, id);
+            return HttpStatus.OK;
+        } catch (DataAccessException e) {
+            return HttpStatus.INTERNAL_SERVER_ERROR;
+        }
     }
 
     public static Integer getGoodsCount(int good_id) {

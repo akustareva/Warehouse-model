@@ -30,6 +30,10 @@ public class Goods {
         return name;
     }
 
+    public String toQuery() {
+        return "(" + code + ", " + quantity + ", '" + name + "')";
+    }
+
     @Override
     public String toString() {
         return String.format("Goods [id = %d, quantity = %d, name = %s]", code, quantity, name);

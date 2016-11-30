@@ -67,7 +67,7 @@ public class Commands implements CommandMarker {
     {
         ResponseEntity<Integer> userId;
         try {
-            userId = restTemplate.getForEntity(serverAddress + "/user_existence/" + login + "/" + password, Integer.class);
+            userId = restTemplate.getForEntity(serverAddress + "/user_existence/" + login + "&" + password, Integer.class);
         } catch (HttpStatusCodeException e) {
             if (e.getStatusCode()== HttpStatus.INTERNAL_SERVER_ERROR) {
                 return ERROR_MESSAGE;
@@ -130,7 +130,7 @@ public class Commands implements CommandMarker {
     @CliCommand(value = "order", help = "Order the product")
     public String book(
             @CliOption(key = {"u"}, mandatory = true, help = "Id of user") int id,
-            @CliOption(key = {"id"}, mandatory = true, help = "Product unique code") int unique_code,
+            @CliOption(key = {"id"}, mandatory = true, help = "Product unique code") int uniqueCode,
             @CliOption(key = {"num"}, mandatory = true, help = "Number of products that user want to book") int amount)
     {
         ResponseEntity<Long> orderId;
@@ -139,7 +139,7 @@ public class Commands implements CommandMarker {
             if (orderId == null || orderId.getStatusCode() != HttpStatus.CREATED) {
                 return ERROR_MESSAGE;
             }
-            ResponseEntity isSuccessful = restTemplate.postForEntity(serverAddress + "/book", new Request(orderId.getBody(), id, unique_code, amount), Object.class);
+            ResponseEntity isSuccessful = restTemplate.postForEntity(serverAddress + "/book", new Request(orderId.getBody(), id, uniqueCode, amount), Object.class);
             if (isSuccessful == null || isSuccessful.getStatusCode() != HttpStatus.OK) {
                 return ERROR_MESSAGE;
             }

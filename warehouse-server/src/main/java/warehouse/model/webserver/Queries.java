@@ -14,8 +14,21 @@ import java.util.List;
 public class Queries {
 
     @RequestMapping(value = "/new_item", method = RequestMethod.POST)
-    public void addGoods(@RequestBody Goods goods) {
-        SQLExecutor.insert(goods);
+    public ResponseEntity addGoods(@RequestBody Goods goods) {
+        HttpStatus status = SQLExecutor.insert(goods);
+        return new ResponseEntity(status);
+    }
+
+    @RequestMapping(value = "/new_items", method = RequestMethod.POST)
+    public ResponseEntity addSeveralGoods(@RequestBody List<Goods> goods) {
+        HttpStatus status = SQLExecutor.insertSeveralGoods(goods);
+        return new ResponseEntity(status);
+    }
+
+    @RequestMapping(value = "/count_upd/{id}&{add}", method = RequestMethod.PUT)
+    public ResponseEntity updateCount(@PathVariable int id, @PathVariable int add) {
+        HttpStatus status = SQLExecutor.updateProductCount(id, add);
+        return new ResponseEntity(status);
     }
 
     @RequestMapping(value = "/goods/{good_id}", method = RequestMethod.GET)

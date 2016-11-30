@@ -17,8 +17,7 @@ public class Request {
     @JsonProperty("status")
     private RequestStatus status;
 
-    public Request(Long id, int userId, int uniqueCode, int amount)
-    {
+    public Request(Long id, int userId, int uniqueCode, int amount) {
         this(id, userId, uniqueCode, amount, RequestType.BOOKED, RequestStatus.IN_PROGRESS);
     }
 
