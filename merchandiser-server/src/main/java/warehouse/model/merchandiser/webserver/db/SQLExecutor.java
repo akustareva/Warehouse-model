@@ -11,6 +11,7 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
 import warehouse.model.db.JDBCTemplate;
 import warehouse.model.entities.Goods;
+import warehouse.model.entities.Order;
 import warehouse.model.entities.Request;
 import warehouse.model.entities.User;
 
@@ -151,16 +152,17 @@ public class SQLExecutor {
         jdbcTemplate.update("UPDATE Request SET date = ? WHERE id = ?", time, id);
     }
 
-    public static List<Request> allUserOrders(int id) {
-        List<Request> requests = new ArrayList<>();
+    public static List<Order> allUserOrders(int id) {
+        List<Order> requests = new ArrayList<>();
         try {
             requests = jdbcTemplate.query("SELECT * FROM Request WHERE user_id = ?", new Object[]{id}, (rs, rowNum) -> {
                 int type = rs.getInt("type");
                 String typeName = getTypeName(type);
                 int status = rs.getInt("status");
                 String statusName = getStatusName(status);
-                return new Request(rs.getLong("id"), rs.getInt("user_id"), rs.getInt("goods_id"), rs.getInt("quantity"),
-                        Request.RequestType.getRequestTypeFromString(typeName), Request.RequestStatus.getRequestStatusFromString(statusName));
+                String goodsName = jdbcTemplate.queryForObject("SELECT name FROM Goods WHERE id = ?", String.class, rs.getInt("goods_id"));
+                return new Order(rs.getLong("id"), goodsName, rs.getInt("quantity"), Request.RequestType.getRequestTypeFromString(typeName),
+                        Request.RequestStatus.getRequestStatusFromString(statusName));
             });
         } catch (DataAccessException e) {
             return null;

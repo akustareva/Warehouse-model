@@ -13,6 +13,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import warehouse.model.entities.Goods;
+import warehouse.model.entities.Order;
 import warehouse.model.entities.Request;
 import warehouse.model.entities.User;
 
@@ -163,23 +164,23 @@ public class Commands implements CommandMarker {
 
     @CliCommand(value = "user orders", help = "All user orders wits status")
     public String allUserOrders(@CliOption(key = {"id"}, mandatory = true, help = "User id") long id) {
-        List<Request> requests;
+        List<Order> orders;
         try {
             ObjectMapper mapper = new ObjectMapper();
             ResponseEntity<JsonNode> requestsJson = restTemplate.getForEntity(serverAddress + "/all_user_orders/" + id, JsonNode.class);
             if (requestsJson == null || requestsJson.getStatusCode() != HttpStatus.OK) {
                 return ERROR_MESSAGE;
             }
-            requests = mapper.readValue(mapper.treeAsTokens(requestsJson.getBody()), new TypeReference<List<Request>>() {});
+            orders = mapper.readValue(mapper.treeAsTokens(requestsJson.getBody()), new TypeReference<List<Order>>() {});
         } catch (RestClientException | IOException e) {
             return ERROR_MESSAGE + ": " + e;
         }
-        if (requests == null) {
+        if (orders == null) {
             return ERROR_MESSAGE;
         }
         StringBuilder sb = new StringBuilder();
-        sb.append("Total: ").append(requests.size()).append(" orders:\n");
-        for (Request item : requests) {
+        sb.append("Total: ").append(orders.size()).append(" orders:\n");
+        for (Order item : orders) {
             sb.append(item.toString()).append("\n");
         }
         return sb.toString();

@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import warehouse.model.entities.Order;
 import warehouse.model.entities.Request;
 import warehouse.model.entities.User;
 import warehouse.model.merchandiser.webserver.db.SQLExecutor;
@@ -52,8 +53,8 @@ public class Queries {
     }
 
     @RequestMapping(value = "/all_user_orders/{id}", method = RequestMethod.GET)
-    public ResponseEntity<List<Request>> showAllOrders(@PathVariable int id) {
-        List<Request> orders = SQLExecutor.allUserOrders(id);
+    public ResponseEntity<List<Order>> showAllOrders(@PathVariable int id) {
+        List<Order> orders = SQLExecutor.allUserOrders(id);
         if (orders == null) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
