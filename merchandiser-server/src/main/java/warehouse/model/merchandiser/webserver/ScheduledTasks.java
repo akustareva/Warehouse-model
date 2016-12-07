@@ -1,5 +1,6 @@
 package warehouse.model.merchandiser.webserver;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -49,5 +50,13 @@ public class ScheduledTasks {
     @Scheduled(fixedRate = 7776000000L)        // delete booked requests which was sent 3 and more months ago and canceled requests
     public void deleteOldRequests() {
         SQLExecutor.deleteOldRequests();
+    }
+
+    @Scheduled(fixedRate = 3600000)
+    public void updateGoods() {
+        try {
+            ResponseEntity<JsonNode> goods = restTemplate.getForEntity(whServerAddress + "/all_goods", JsonNode.class);
+            SQLExecutor.updateGoodsTable(goods.getBody());
+        } catch (RestClientException ignored) {}
     }
 }

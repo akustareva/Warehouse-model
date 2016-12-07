@@ -43,7 +43,9 @@ public class Queries {
     @RequestMapping(value = "/all_goods", method = RequestMethod.GET)
     public ResponseEntity<JsonNode> showRequest() {
         try {
-            return restTemplate.getForEntity(whServerAddress + "/all_goods", JsonNode.class);
+            ResponseEntity<JsonNode> goods = restTemplate.getForEntity(whServerAddress + "/all_goods", JsonNode.class);
+            SQLExecutor.updateGoodsTable(goods.getBody());
+            return goods;
         } catch (RestClientException e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }

@@ -4,6 +4,11 @@ CREATE TABLE IF NOT EXISTS User (
   password VARCHAR(50) NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS Goods (
+  id INT NOT NULL PRIMARY KEY,
+  name VARCHAR(30)
+);
+
 CREATE TABLE IF NOT EXISTS OrderTypeList (
   id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
   type VARCHAR(10) NOT NULL                   -- booked / paid / cancel

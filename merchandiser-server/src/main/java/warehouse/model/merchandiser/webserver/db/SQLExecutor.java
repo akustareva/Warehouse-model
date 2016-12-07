@@ -1,5 +1,8 @@
 package warehouse.model.merchandiser.webserver.db;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
@@ -7,9 +10,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
 import warehouse.model.db.JDBCTemplate;
+import warehouse.model.entities.Goods;
 import warehouse.model.entities.Request;
 import warehouse.model.entities.User;
 
+import java.io.IOException;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -223,6 +228,18 @@ public class SQLExecutor {
         } catch (DataAccessException e) {
             return HttpStatus.INTERNAL_SERVER_ERROR;
         }
+    }
+
+    public static void updateGoodsTable(JsonNode goodsJson) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            List<Goods> goods = mapper.readValue(mapper.treeAsTokens(goodsJson), new TypeReference<List<Goods>>() {});
+            StringJoiner sql = new StringJoiner("), (", "MERGE INTO Goods VALUES (", ");");
+            for (Goods g : goods) {
+                sql.add(g.getCode() + ", '" + g.getName() + "'");
+            }
+            jdbcTemplate.update(sql.toString());
+        } catch (DataAccessException | IOException ignored) {}
     }
 
     private static int getStatusId(String status) {
