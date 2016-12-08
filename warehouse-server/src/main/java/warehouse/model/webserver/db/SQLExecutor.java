@@ -105,6 +105,10 @@ public class SQLExecutor {
 
     public static HttpStatus addNewRequest(Request request) {
         try {
+            int exists = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM Request WHERE id = ?", Integer.class, request.getId());
+            if (exists != 0) {
+                return HttpStatus.OK;
+            }
             int typeId = getTypeId(request.getType().toString());
             jdbcTemplate.update(
                     "INSERT INTO Request (id, user_id, goods_id, quantity, type) VALUES (?, ?, ?, ?, ?)",
@@ -117,6 +121,11 @@ public class SQLExecutor {
 
     public static HttpStatus payOrder(long id) {
         try {
+            int exists = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM Request WHERE id = ? AND type = ?", Integer.class,
+                    id, getTypeId("paid"));
+            if (exists != 0) {
+                return HttpStatus.OK;
+            }
             updateOrderType(id, "paid");
             int goodsId = jdbcTemplate.queryForObject("SELECT goods_id FROM Request WHERE id = ?",
                     Integer.class, id);
