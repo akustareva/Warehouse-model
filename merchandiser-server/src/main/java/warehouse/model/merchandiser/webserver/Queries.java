@@ -1,19 +1,17 @@
 package warehouse.model.merchandiser.webserver;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.slf4j.Logger;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import warehouse.model.entities.Order;
 import warehouse.model.entities.Request;
 import warehouse.model.entities.User;
+import warehouse.model.loggers.Loggers;
 import warehouse.model.merchandiser.webserver.db.SQLExecutor;
 
 import java.text.SimpleDateFormat;
@@ -25,6 +23,7 @@ import java.util.ResourceBundle;
 @RestController
 @RequestMapping("/mh")
 public class Queries {
+    private static final Logger log = Loggers.getULogger(Queries.class, "mh");
     private static ResourceBundle bundle = ResourceBundle.getBundle("mh", Locale.US);
     private static final int MOD = 106033;
     private static int number = 0;
@@ -37,6 +36,7 @@ public class Queries {
         try {
             return restTemplate.getForEntity(whServerAddress + "/goods/" + good_id, Integer.class);
         } catch (RestClientException e) {
+            log.error(e.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -48,6 +48,7 @@ public class Queries {
             SQLExecutor.updateGoodsTable(goods.getBody());
             return goods;
         } catch (RestClientException e) {
+            log.error(e.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -72,23 +73,28 @@ public class Queries {
     @RequestMapping(value = "/new_user", method = RequestMethod.POST)
     public ResponseEntity<Integer> userSignUp(@RequestBody User user) {
         Integer userId = SQLExecutor.insert(user);
-        if (userId == -1) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        } else if (userId == -2) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-        return new ResponseEntity<>(userId, HttpStatus.CREATED);
+        return checkResponse(userId, 0);
     }
 
-    @RequestMapping(value = "/user_existence/{login}/{password}", method = RequestMethod.GET)
+    @RequestMapping(value = "/user_existence/{login}&{password}", method = RequestMethod.GET)
     public ResponseEntity<Integer> userSignIn(@PathVariable String login, @PathVariable String password) {
         Integer userId = SQLExecutor.checkUser(new User(login, password));
+        return checkResponse(userId, 1);
+    }
+
+    private static ResponseEntity<Integer> checkResponse(Integer userId, int type) {
         if (userId == -1) {
+            log.error("Error during connecting to db.");
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         } else if (userId == -2) {
+            log.error("Invalid user name or password.");
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity<>(userId, HttpStatus.OK);
+        if (type == 0) {
+            return new ResponseEntity<>(userId, HttpStatus.CREATED);
+        } else {
+            return new ResponseEntity<>(userId, HttpStatus.OK);
+        }
     }
 
     @RequestMapping(value = "/book", method = RequestMethod.POST)
@@ -102,7 +108,9 @@ public class Queries {
             if (response != null && response.getStatusCode() == HttpStatus.OK) {
                 SQLExecutor.updateOrderStatus(request.getId(), DONE_STATUS);
             }
-        } catch (RestClientException | DataAccessException ignored) {}
+        } catch (RestClientException | DataAccessException e) {
+            log.error(e.getMessage());
+        }
         return new ResponseEntity(HttpStatus.OK);
     }
 
@@ -112,7 +120,9 @@ public class Queries {
         try {
             restTemplate.put(whServerAddress + "/payment/" + orderId, null);
             SQLExecutor.updateOrderStatus(orderId, DONE_STATUS);
-        } catch (RestClientException ignore) {}
+        } catch (RestClientException e) {
+            log.error(e.getMessage());
+        }
     }
 
     @RequestMapping(value = "/cancellation/{orderId}", method = RequestMethod.PUT)
@@ -120,7 +130,9 @@ public class Queries {
         SQLExecutor.cancelOrder(orderId);
         try {
             restTemplate.put(whServerAddress + "/cancellation/" + orderId, null);
-        } catch (RestClientException ignore) {}
+        } catch (RestClientException e) {
+            log.error(e.getMessage());
+        }
     }
 
     @RequestMapping(value = "/reset/{adminPassword}", method = RequestMethod.PUT)

@@ -1,5 +1,6 @@
 package warehouse.model.webserver.db;
 
+import org.slf4j.Logger;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
@@ -9,6 +10,7 @@ import org.springframework.jdbc.datasource.init.ScriptUtils;
 import warehouse.model.db.JDBCTemplate;
 import warehouse.model.entities.Goods;
 import warehouse.model.entities.Request;
+import warehouse.model.loggers.Loggers;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -49,12 +51,14 @@ public class SQLExecutor {
             }
         }
     }
+    private static final Logger log = Loggers.getULogger(SQLExecutor.class, "wh");
 
     public static HttpStatus insert(Goods goods) {
         try {
             jdbcTemplate.update("INSERT INTO Goods VALUES (?, ?, ?)", goods.getCode(), goods.getQuantity(), goods.getName());
             return HttpStatus.OK;
         } catch (DataAccessException e) {
+            log.error("Cannot insert new item: " + e.getMessage());
             return HttpStatus.INTERNAL_SERVER_ERROR;
         }
     }
@@ -68,6 +72,7 @@ public class SQLExecutor {
             jdbcTemplate.update(sql.toString());
             return HttpStatus.OK;
         } catch (DataAccessException e) {
+            log.error("Cannot insert new goods: " + e.getMessage());
             return HttpStatus.INTERNAL_SERVER_ERROR;
         }
     }
@@ -80,6 +85,7 @@ public class SQLExecutor {
             jdbcTemplate.update("UPDATE Goods SET quantity = ? WHERE id = ?", currentCount, id);
             return HttpStatus.OK;
         } catch (DataAccessException e) {
+            log.error("Cannot update product count: " + e.getMessage());
             return HttpStatus.INTERNAL_SERVER_ERROR;
         }
     }
@@ -88,7 +94,9 @@ public class SQLExecutor {
         Integer quantity = -1;
         try {
             quantity = jdbcTemplate.queryForObject("SELECT quantity FROM GOODS WHERE id = ?", Integer.class, good_id);
-        } catch (DataAccessException ignored) {}
+        } catch (DataAccessException e) {
+            log.error("Cannot retrieve goods count from db: " + e.getMessage());
+        }
         return quantity;
     }
 
@@ -98,6 +106,7 @@ public class SQLExecutor {
             goods = jdbcTemplate.query("SELECT * FROM Goods",
                     (rs, rowNum) -> new Goods(rs.getInt("id"), rs.getInt("quantity"), rs.getString("name")));
         } catch (DataAccessException e) {
+            log.error("Cannot retrieve goods from db: " + e.getMessage());
             return null;
         }
         return goods;
@@ -115,6 +124,7 @@ public class SQLExecutor {
                     request.getId(), request.getUserId(), request.getUniqueCode(), request.getAmount(), typeId);
             return HttpStatus.OK;
         } catch (DataAccessException e) {
+            log.error("Cannot add new request to db: " + e.getMessage());
             return HttpStatus.INTERNAL_SERVER_ERROR;
         }
     }
@@ -126,7 +136,6 @@ public class SQLExecutor {
             if (exists != 0) {
                 return HttpStatus.OK;
             }
-            updateOrderType(id, "paid");
             int goodsId = jdbcTemplate.queryForObject("SELECT goods_id FROM Request WHERE id = ?",
                     Integer.class, id);
             int availableCount = jdbcTemplate.queryForObject("SELECT quantity FROM Goods WHERE id = ?",
@@ -134,13 +143,16 @@ public class SQLExecutor {
             int bookedCount = jdbcTemplate.queryForObject("SELECT quantity FROM Request WHERE id = ?",
                     Integer.class, id);
             if (bookedCount > availableCount) {
+                log.error("[FATAL] Available count of goods less than booked count. Urgently add necessary goods.");
                 return HttpStatus.NOT_ACCEPTABLE;
             } else {
                 availableCount -= bookedCount;
                 jdbcTemplate.update("UPDATE Goods SET quantity = ? WHERE id = ?", availableCount, goodsId);
+                updateOrderType(id, "paid");
                 return HttpStatus.OK;
             }
         } catch (DataAccessException e) {
+            log.error("Cannot pay order: " + e.getMessage());
             return HttpStatus.INTERNAL_SERVER_ERROR;
         }
     }
@@ -150,6 +162,7 @@ public class SQLExecutor {
             updateOrderType(id, "canceled");
             return HttpStatus.OK;
         } catch (DataAccessException e) {
+            log.error("Cannot mark order as canceled: " + e.getMessage());
             return HttpStatus.INTERNAL_SERVER_ERROR;
         }
     }
@@ -174,7 +187,9 @@ public class SQLExecutor {
                     jdbcTemplate.update("DELETE FROM Request WHERE id = ?", requestId);
                 }
             });
-        } catch (DataAccessException ignored) {}
+        } catch (DataAccessException e) {
+            log.error("Cannot delete old requests from db: " + e.getMessage());
+        }
     }
 
     private static int getTypeId(String type) {

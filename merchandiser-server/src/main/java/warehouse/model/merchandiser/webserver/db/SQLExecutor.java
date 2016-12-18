@@ -3,6 +3,7 @@ package warehouse.model.merchandiser.webserver.db;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,7 @@ import warehouse.model.entities.Goods;
 import warehouse.model.entities.Order;
 import warehouse.model.entities.Request;
 import warehouse.model.entities.User;
+import warehouse.model.loggers.Loggers;
 
 import java.io.IOException;
 import java.sql.*;
@@ -60,6 +62,7 @@ public class SQLExecutor {
             }
         }
     }
+    private static final Logger log = Loggers.getULogger(SQLExecutor.class, "mh");
 
     public static Integer insert(User user) {
         String sql = "INSERT INTO User (login, password) VALUES (?,?)";
@@ -120,6 +123,7 @@ public class SQLExecutor {
                     request.getId(), request.getUserId(), request.getUniqueCode(), request.getAmount(), type_id, time, 1, status_id);
             return HttpStatus.OK;
         } catch (DataAccessException e) {
+            log.error("Cannot add new request: " + e.getMessage());
             return HttpStatus.INTERNAL_SERVER_ERROR;
         }
     }
@@ -133,23 +137,35 @@ public class SQLExecutor {
     }
 
     private static void updateOrderType(long id, String type, String status) {
-        int type_id = getTypeId(type);
-        int status_id = getStatusId(status);
-        jdbcTemplate.update("UPDATE Request SET type = ? WHERE id = ?", type_id, id);
-        jdbcTemplate.update("UPDATE Request SET status = ? WHERE id = ?", status_id, id);
-        updateAttemptsCount(id, 0);
+        try {
+            int type_id = getTypeId(type);
+            int status_id = getStatusId(status);
+            jdbcTemplate.update("UPDATE Request SET type = ? WHERE id = ?", type_id, id);
+            jdbcTemplate.update("UPDATE Request SET status = ? WHERE id = ?", status_id, id);
+            updateAttemptsCount(id, 0);
+        } catch (DataAccessException e) {
+            log.error("Cannot change order type on " + type + ": " + e.getMessage());
+        }
     }
 
     public static void updateOrderStatus(long id, String status) {
-        int status_id = getStatusId(status);
-        jdbcTemplate.update("UPDATE Request SET status = ? WHERE id = ?", status_id, id);
-        updateAttemptsCount(id, 0);
+        try {
+            int status_id = getStatusId(status);
+            jdbcTemplate.update("UPDATE Request SET status = ? WHERE id = ?", status_id, id);
+            updateAttemptsCount(id, 0);
+        } catch (DataAccessException e) {
+            log.error("Cannot change order status on " + status + ": " + e.getMessage());
+        }
     }
 
     private static void updateAttemptsCount(long id, int attempts_count) {
-        Timestamp time = new Timestamp(System.currentTimeMillis());
-        jdbcTemplate.update("UPDATE Request SET attempts_count = ? WHERE id = ?", attempts_count, id);
-        jdbcTemplate.update("UPDATE Request SET date = ? WHERE id = ?", time, id);
+        try {
+            Timestamp time = new Timestamp(System.currentTimeMillis());
+            jdbcTemplate.update("UPDATE Request SET attempts_count = ? WHERE id = ?", attempts_count, id);
+            jdbcTemplate.update("UPDATE Request SET date = ? WHERE id = ?", time, id);
+        } catch (DataAccessException e) {
+            log.error("Cannot update attempts count: " + e.getMessage());
+        }
     }
 
     public static List<Order> allUserOrders(int id) {
@@ -165,6 +181,7 @@ public class SQLExecutor {
                         Request.RequestStatus.getRequestStatusFromString(statusName));
             });
         } catch (DataAccessException e) {
+            log.error("Cannot show user orders: " + e.getMessage());
             return null;
         }
         return requests;
@@ -172,11 +189,12 @@ public class SQLExecutor {
 
     public static List<Request> getAllInProgressRequests() {
         List<Request> requests = new ArrayList<>();
-        int status = getStatusId("in progress");
         try {
+            int status = getStatusId("in progress");
             requests = jdbcTemplate.query("SELECT * FROM Request WHERE status = ?", new Object[]{status}, (rs, rowNum) -> {
                 int attempts_count = rs.getInt("attempts_count");
                 if (attempts_count >= MAX_ATTEMPT_COUNT) {
+                    log.error("[FATAL] Attempts count of request number " + rs.getLong("id") + " more than maximum allowable.");
                     return null;
                 }
                 int type = rs.getInt("type");
@@ -185,6 +203,7 @@ public class SQLExecutor {
                         Request.RequestType.getRequestTypeFromString(typeName), Request.RequestStatus.IN_PROGRESS);
             });
         } catch (DataAccessException e) {
+            log.error("Cannot retrieve in progress requests from db: " + e.getMessage());
             return null;
         }
         return requests;
@@ -196,7 +215,9 @@ public class SQLExecutor {
                     Integer.class, id);
             current_count++;
             updateAttemptsCount(id, current_count);
-        } catch (DataAccessException ignored) {}
+        } catch (DataAccessException e) {
+            log.error("Cannot increment attempts count of request number " + id + ": " + e.getMessage());
+        }
     }
 
     public static void deleteOldRequests() {
@@ -217,7 +238,9 @@ public class SQLExecutor {
                     jdbcTemplate.update("DELETE FROM Request WHERE id = ?", requestId);
                 }
             });
-        } catch (DataAccessException ignored) {}
+        } catch (DataAccessException e) {
+            log.error("Cannot delete old requests: " + e.getMessage());
+        }
     }
 
     public static HttpStatus resetAttemptsCount() {
@@ -228,6 +251,7 @@ public class SQLExecutor {
             });
             return HttpStatus.OK;
         } catch (DataAccessException e) {
+            log.error("Cannot reset attempts count: " + e.getMessage());
             return HttpStatus.INTERNAL_SERVER_ERROR;
         }
     }
@@ -241,7 +265,9 @@ public class SQLExecutor {
                 sql.add(g.getCode() + ", '" + g.getName() + "'");
             }
             jdbcTemplate.update(sql.toString());
-        } catch (DataAccessException | IOException ignored) {}
+        } catch (DataAccessException | IOException e) {
+            log.error("Cannot update goods table: " + e.getMessage());
+        }
     }
 
     private static int getStatusId(String status) {

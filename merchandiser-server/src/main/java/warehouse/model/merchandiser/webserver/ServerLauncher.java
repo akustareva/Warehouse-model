@@ -1,19 +1,19 @@
 package warehouse.model.merchandiser.webserver;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.JLineShellComponent;
+import warehouse.model.loggers.Loggers;
 import warehouse.model.merchandiser.webserver.shell.Commands;
 
 @SpringBootApplication
 @EnableScheduling
 public class ServerLauncher {
-    private static final Logger log = LoggerFactory.getLogger(ServerLauncher.class);
+    private static final Logger log = Loggers.getConsoleLogger(ServerLauncher.class);
 
     public static void main(String[] args) {
         if (args.length != 1) {

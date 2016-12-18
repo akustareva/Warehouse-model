@@ -1,14 +1,14 @@
 package warehouse.model.client;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.JLineShellComponent;
+import warehouse.model.loggers.Loggers;
 
 import java.io.IOException;
 
 public class ConsoleClient {
-    private static final Logger log = LoggerFactory.getLogger(ConsoleClient.class);
+    private static final Logger log = Loggers.getConsoleLogger(ConsoleClient.class);
 
     public static void main(String[] args) throws IOException {
         if (args.length != 1) {

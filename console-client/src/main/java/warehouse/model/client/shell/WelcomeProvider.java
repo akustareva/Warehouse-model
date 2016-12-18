@@ -3,7 +3,6 @@ package warehouse.model.client.shell;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.shell.plugin.support.DefaultBannerProvider;
-import org.springframework.shell.support.util.OsUtils;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -21,6 +20,6 @@ public class WelcomeProvider extends DefaultBannerProvider {
     }
 
     public String getWelcomeMessage() {
-        return "Press TUB to see available commands or use command \"help\" to see more information about them. ";
+        return "Welcome! Press TUB to see available commands or use command \"help\" to see more information about them. ";
     }
 }
