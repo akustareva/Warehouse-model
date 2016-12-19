@@ -1,2 +1,3 @@
-**Building consistent microservices with CQRS + Event Sourcing**
+**Build consistent microservices with CQRS + Event Sourcing**
+
 Proof of concept
